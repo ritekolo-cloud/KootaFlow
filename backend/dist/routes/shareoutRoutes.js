@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const shareoutController_1 = require("../controllers/shareoutController");
+const authMiddleware_1 = require("../middleware/authMiddleware");
+const roleMiddleware_1 = require("../middleware/roleMiddleware");
+const router = (0, express_1.Router)();
+router.use(authMiddleware_1.authenticate);
+router.get('/', shareoutController_1.getShareOuts);
+router.post('/calculate', (0, roleMiddleware_1.authorizeRoles)('ADMIN', 'TREASURER'), shareoutController_1.calculateShareOut);
+exports.default = router;

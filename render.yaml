@@ -1,0 +1,56 @@
+services:
+  # 1. Backend Express Web Service
+  - type: web
+    name: kootaflow-server
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install --include=dev && npx prisma generate && npx prisma db push --accept-data-loss && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kootaflow-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: CLIENT_URL
+        value: https://kootaflow-client.onrender.com
+      # SMTP configuration for Email Gateway (Gmail SMTP)
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        value: your_gmail_address@gmail.com
+      - key: SMTP_PASS
+        value: your_gmail_app_password
+
+  # 2. Frontend Vite React Static Site
+  - type: web
+    name: kootaflow-client
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://kootaflow-server.onrender.com
+    routes:
+      # Redirect/Rewrite rule for SPA React Router
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+# 3. PostgreSQL Database Instance
+databases:
+  - name: kootaflow-db
+    plan: free
