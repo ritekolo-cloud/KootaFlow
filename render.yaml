@@ -1,11 +1,11 @@
 services:
   - type: web
-    name: morija-cantiques
+    name: kootaflow
     env: node
     plan: free
     region: oregon
     autoDeploy: true
-    buildCommand: npm ci --include=dev && npm run build && npm run db:migrate && npm run hymns:validate && npm run hymns:import
+    buildCommand: npm ci --include=dev && npm run build && npm run db:migrate && npm run db:seed
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
@@ -18,6 +18,6 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://morija-cantiques.onrender.com
+        value: https://kootaflow.onrender.com
       - key: LOG_LEVEL
         value: info

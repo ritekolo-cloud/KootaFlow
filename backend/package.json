@@ -1,24 +1,17 @@
 {
-  "name": "@morija/backend",
+  "name": "@kootaflow/backend",
   "version": "1.0.0",
-  "description": "Morija-Cantiques Hymn Book API",
+  "description": "KootaFlow VSLA Backend API",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev -r dotenv/config --respawn --transpile-only -r tsconfig-paths/register src/server.ts",
     "build": "tsc",
     "start": "node -r module-alias/register dist/server.js",
-
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy",
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:migrate:dev": "prisma migrate dev",
-
-    "prisma:seed": "node scripts/import-hymns.mjs",
-
-    "hymns:validate": "node scripts/validate-hymns.mjs",
-    "hymns:import": "node scripts/import-hymns.mjs",
-    "migration:report": "node scripts/migration-report.mjs",
-
+    "prisma:seed": "ts-node prisma/seed.ts",
     "test": "jest --coverage --forceExit --detectOpenHandles"
   },
   "dependencies": {
@@ -71,6 +64,6 @@
     "@": "dist"
   },
   "prisma": {
-    "seed": "node scripts/import-hymns.mjs"
+    "seed": "ts-node prisma/seed.ts"
   }
 }

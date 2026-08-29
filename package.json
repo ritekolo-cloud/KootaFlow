@@ -1,7 +1,8 @@
 {
-  "name": "morija-cantiques-monorepo",
+  "name": "kootaflow",
   "version": "1.0.0",
   "private": true,
+  "description": "KootaFlow — Village Savings and Loan Association (VSLA) Management System",
   "engines": {
     "node": "22.x"
   },
@@ -10,20 +11,17 @@
     "backend"
   ],
   "scripts": {
-    "dev:backend": "npm run dev --workspace=@morija/backend",
-    "dev:frontend": "npm run dev --workspace=@morija/frontend",
+    "dev:backend": "npm run dev --workspace=@kootaflow/backend",
+    "dev:frontend": "npm run dev --workspace=@kootaflow/frontend",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build": "npm run build --workspace=@morija/backend && npm run build --workspace=@morija/frontend",
-    "start": "npm run start --workspace=@morija/backend",
+    "build": "npm run build --workspace=@kootaflow/backend && npm run build --workspace=@kootaflow/frontend",
+    "start": "npm run start --workspace=@kootaflow/backend",
     "postinstall": "node scripts/postinstall.js",
-    "db:generate": "npm run prisma:generate --workspace=@morija/backend",
-    "db:migrate": "npm run prisma:migrate:deploy --workspace=@morija/backend",
-    "db:migrate:dev": "npm run prisma:migrate:dev --workspace=@morija/backend",
-    "db:seed": "npm run prisma:seed --workspace=@morija/backend",
-    "hymns:validate": "npm run hymns:validate --workspace=@morija/backend",
-    "hymns:import": "npm run hymns:import --workspace=@morija/backend",
-    "migration:report": "npm run migration:report --workspace=@morija/backend",
-    "setup": "npm run db:generate && npm run db:migrate && npm run hymns:validate && npm run hymns:import && npm run migration:report"
+    "db:generate": "npm run prisma:generate --workspace=@kootaflow/backend",
+    "db:migrate": "npm run prisma:migrate:deploy --workspace=@kootaflow/backend",
+    "db:migrate:dev": "npm run prisma:migrate:dev --workspace=@kootaflow/backend",
+    "db:seed": "npm run prisma:seed --workspace=@kootaflow/backend",
+    "setup": "npm run db:generate && npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
     "concurrently": "^8.2.2"

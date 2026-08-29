@@ -4,12 +4,12 @@ services:
   # ─── PostgreSQL Database ──────────────────────────────────
   postgres:
     image: postgres:16-alpine
-    container_name: morija_postgres
+    container_name: kootaflow_postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Branham7
-      POSTGRES_DB: morija_cantiques
+      POSTGRES_PASSWORD: kootaflow_password
+      POSTGRES_DB: kootaflow
     ports:
       - "5432:5432"
     volumes:
@@ -20,14 +20,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - morija_net
-
-
+      - kootaflow_net
 
 volumes:
   postgres_data:
     driver: local
 
 networks:
-  morija_net:
+  kootaflow_net:
     driver: bridge

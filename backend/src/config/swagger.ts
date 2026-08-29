@@ -5,9 +5,9 @@ const options: swaggerJSDoc.Options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Morija-Cantiques API',
+      title: 'KootaFlow VSLA API',
       version: '1.0.0',
-      description: 'API for the Morija-Cantiques Hymn Book application',
+      description: 'API for the KootaFlow Village Savings and Loan Association (VSLA) Management System',
     },
     servers: [
       {
@@ -15,7 +15,7 @@ const options: swaggerJSDoc.Options = {
         description: 'Development server',
       },
       {
-        url: 'https://api.morijacantiques.com/api',
+        url: 'https://kootaflow.onrender.com/api',
         description: 'Production server',
       },
     ],

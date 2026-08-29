@@ -1,57 +1,67 @@
-# Morija Cantiques
+# KootaFlow — Village Savings and Loan Association (VSLA) Management System
 
-Morija Cantiques is a React + Express hymn application backed by Neon PostgreSQL. The consolidated deployable project lives in this repository.
+KootaFlow is a fullstack management platform designed specifically for Village Savings and Loan Associations (VSLA), Community Savings Groups, and Micro-finance Cooperatives.
+
+---
+
+## Key Features
+
+- **Member Management:** Member onboarding, profiles, KYC data, status tracking, and group assignment.
+- **Savings Ledger:** Voluntary savings, welfare contributions, and emergency fund balances.
+- **Share Registry:** Share purchase tracking, limits enforcement, and share value monitoring.
+- **Loan Portfolio:** Loan applications, multi-tier approvals, disbursement, dynamic interest calculations, and repayment schedules.
+- **Repayment Tracking:** Loan repayments, receipts, and outstanding balance calculations.
+- **Share-Out Calculations:** End-of-cycle distribution preview, loan deduction adjustments, and net payout calculation.
+- **Financial Audit Trail:** Double-entry transaction ledger, financial statements, and export capabilities.
+- **Role-Based Access Control:** Super Admin, Admin, Chairperson, Treasurer, Secretary, and Member permissions.
+- **Real-Time Dashboard:** Cash in box, total savings, loan portfolio health, active members, and activity timeline.
+
+---
 
 ## Project Structure
 
-- `frontend/` - React, React Query, React Router, Tailwind, and PWA configuration.
-- `backend/` - Express API, Prisma schema/migrations, import scripts, and the canonical hymn dataset.
-- `backend/data/cantiques-hymns.json` - 13 collections and 6,209 hymns.
+```
+├── backend/            # Express REST API, Prisma ORM, JWT Auth, Socket.io
+│   ├── prisma/         # Prisma schema and idempotent seed scripts
+│   └── src/            # Backend modules (auth, groups, members, savings, shares, loans, etc.)
+├── frontend/           # React 18, TypeScript, Tailwind CSS, Lucide Icons, React Query
+│   └── src/            # Pages, components, hooks, stores, and API clients
+├── render.yaml         # Render deployment blueprint
+└── docker-compose.yml  # Local PostgreSQL container configuration
+```
 
-## Local Setup
+---
 
-1. Copy `.env.example` to `.env` and set `DATABASE_URL`.
-2. Install dependencies:
+## Local Development Setup
 
+### 1. Configure Environment Variables
+Copy `.env.example` to `.env` and set your `DATABASE_URL`:
+```bash
+cp .env.example .env
+```
+
+### 2. Install Dependencies
 ```bash
 npm ci
 ```
 
-3. Prepare the database and hymn data:
-
+### 3. Initialize Database and Seed Data
 ```bash
 npm run setup
 ```
 
-4. Start development servers:
-
+### 4. Start Development Servers
 ```bash
 npm run dev
 ```
+- Frontend runs at: `http://localhost:5173`
+- Backend API runs at: `http://localhost:5000`
+- API Health Endpoint: `http://localhost:5000/api/health`
+- Swagger Documentation: `http://localhost:5000/api/docs`
 
-Frontend runs on `http://localhost:5173`; backend runs on `http://localhost:5000`.
+---
 
-## Verification
+## Production Deployment
 
-```bash
-npm run hymns:validate
-npm run build
-```
-
-The API health endpoint is available at `/api/health` and reports database connectivity plus collection/hymn counts.
-
-## GitHub Deployment
-
-This repo includes `render.yaml` for a single Render web service. The service builds the backend and frontend, applies Prisma migrations, validates/imports the hymn dataset, and serves the React app from Express.
-
-Set `DATABASE_URL` in the hosting platform to the Neon pooled PostgreSQL URL. If the Render service name changes, update `CORS_ORIGIN` in `render.yaml` to the deployed service URL.
-
-If using another Node-capable platform, use:
-
-```bash
-npm ci
-npm run build
-npm run db:migrate
-npm run hymns:import
-npm start
-```
+This repository includes a [`render.yaml`](render.yaml) blueprint for one-click deployment to Render.
+The build process compiles the TypeScript backend and React frontend, applies database migrations, seeds the initial admin safely and idempotently, and serves the application.

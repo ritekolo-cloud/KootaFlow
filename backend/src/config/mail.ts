@@ -41,46 +41,49 @@ export async function sendMail(options: MailOptions): Promise<void> {
   }
 }
 
-export function verificationEmailTemplate(name: string, link: string): string {
+export function welcomeEmailTemplate(name: string, groupName: string): string {
   return `
-    <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #FFFDF0; padding: 40px; border-radius: 8px;">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="background: #0A0A08; display: inline-block; padding: 16px; border-radius: 12px; margin-bottom: 16px;">
-          <span style="color: #FFFF00; font-size: 28px;">✝</span>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #F5F7FA; padding: 40px; border-radius: 8px;">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div style="background: #0B1F3A; display: inline-block; padding: 12px 24px; border-radius: 8px;">
+          <span style="color: #10B981; font-weight: bold; font-size: 20px;">KootaFlow</span>
         </div>
-        <h1 style="color: #0A0A08; font-size: 24px; margin: 0;">Morija Cantiques</h1>
+        <h1 style="color: #0B1F3A; font-size: 22px; margin-top: 16px;">Welcome to KootaFlow VSLA</h1>
       </div>
-      <h2 style="color: #0A0A08;">Welcome, ${name}!</h2>
-      <p style="color: #6B6857; line-height: 1.6;">
-        Thank you for joining Morija Cantiques. Please verify your email address to access all hymns.
-      </p>
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="${link}" style="background: #FFFF00; color: #0A0A08; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
-          Verify Email
-        </a>
+      <div style="background: #FFFFFF; padding: 24px; border-radius: 6px; border: 1px solid #E2E8F0;">
+        <h2 style="color: #0B1F3A; font-size: 18px; margin-top: 0;">Hi ${name},</h2>
+        <p style="color: #4A5568; line-height: 1.6;">
+          You have been registered as a member of <strong>${groupName}</strong> on the KootaFlow Village Savings and Loan Association platform.
+        </p>
+        <p style="color: #4A5568; line-height: 1.6;">
+          You can now track your savings, share holdings, loan records, and meeting schedules in real time.
+        </p>
       </div>
-      <p style="color: #A8A592; font-size: 13px;">This link expires in 24 hours. If you didn't create an account, ignore this email.</p>
+      <p style="color: #718096; font-size: 12px; text-align: center; margin-top: 24px;">KootaFlow — Empowering Community Finance</p>
     </div>`;
 }
 
 export function passwordResetEmailTemplate(name: string, link: string): string {
   return `
-    <div style="font-family: Georgia, serif; max-width: 600px; margin: 0 auto; background: #FFFDF0; padding: 40px; border-radius: 8px;">
-      <div style="text-align: center; margin-bottom: 32px;">
-        <div style="background: #0A0A08; display: inline-block; padding: 16px; border-radius: 12px;">
-          <span style="color: #FFFF00; font-size: 28px;">✝</span>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #F5F7FA; padding: 40px; border-radius: 8px;">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div style="background: #0B1F3A; display: inline-block; padding: 12px 24px; border-radius: 8px;">
+          <span style="color: #10B981; font-weight: bold; font-size: 20px;">KootaFlow</span>
         </div>
-        <h1 style="color: #0A0A08; font-size: 24px; margin-top: 12px;">Morija Cantiques</h1>
+        <h1 style="color: #0B1F3A; font-size: 22px; margin-top: 16px;">Password Reset Request</h1>
       </div>
-      <h2 style="color: #0A0A08;">Password Reset</h2>
-      <p style="color: #6B6857; line-height: 1.6;">
-        Hi ${name}, we received a request to reset your password.
-      </p>
-      <div style="text-align: center; margin: 32px 0;">
-        <a href="${link}" style="background: #FFFF00; color: #0A0A08; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">
-          Reset Password
-        </a>
+      <div style="background: #FFFFFF; padding: 24px; border-radius: 6px; border: 1px solid #E2E8F0;">
+        <h2 style="color: #0B1F3A; font-size: 18px; margin-top: 0;">Hi ${name},</h2>
+        <p style="color: #4A5568; line-height: 1.6;">
+          We received a request to reset your password for your KootaFlow account.
+        </p>
+        <div style="text-align: center; margin: 28px 0;">
+          <a href="${link}" style="background: #10B981; color: #FFFFFF; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px;">
+            Reset Password
+          </a>
+        </div>
+        <p style="color: #718096; font-size: 13px;">This link will expire in 1 hour. If you didn't request this, you can safely ignore this email.</p>
       </div>
-      <p style="color: #A8A592; font-size: 13px;">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
+      <p style="color: #718096; font-size: 12px; text-align: center; margin-top: 24px;">KootaFlow — Empowering Community Finance</p>
     </div>`;
 }

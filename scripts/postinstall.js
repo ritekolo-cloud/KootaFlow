@@ -8,7 +8,7 @@ if (process.env.RENDER_SERVICE_TYPE === 'static') {
 
 console.log('Running postinstall Prisma client generation...');
 try {
-  execSync('npm run prisma:generate --workspace=@morija/backend', { stdio: 'inherit' });
+  execSync('npm run prisma:generate --workspace=@kootaflow/backend', { stdio: 'inherit' });
 } catch (error) {
   console.error('Failed to run Prisma generation:', error.message);
   process.exit(1);
