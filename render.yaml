@@ -1,11 +1,13 @@
 services:
+  # ─── 1. Backend Web Service (Node.js REST API) ──────────────────────
   - type: web
     name: kootaflow
     env: node
     plan: free
     region: oregon
     autoDeploy: true
-    buildCommand: npm ci --include=dev && npm run build && npm run db:migrate && npm run db:seed
+    buildCommand: npm ci --include=dev && npm run build
+    preDeployCommand: npm run db:migrate
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
@@ -27,3 +29,18 @@ services:
         value: admin@kootaflow.com
       - key: ADMIN_PASSWORD
         generateValue: true
+
+  # ─── 2. Frontend Static Site (React/Vite SPA) ────────────────────────
+  - type: static
+    name: kootaflow-client
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    autoDeploy: true
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        value: https://kootaflow.onrender.com/api
