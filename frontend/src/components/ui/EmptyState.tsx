@@ -1,24 +1,36 @@
 import React from 'react';
-import { LucideIcon } from 'lucide-react';
-import { cn } from '../../utils/utils';
+import { FolderOpen } from 'lucide-react';
+import { Button } from './Button';
 
 interface EmptyStateProps {
-  icon: LucideIcon;
   title: string;
   description: string;
-  className?: string;
+  icon?: React.ReactNode;
+  actionLabel?: string;
+  onAction?: () => void;
+  actionIcon?: React.ReactNode;
 }
 
-export function EmptyState({ icon: Icon, title, description, className }: EmptyStateProps) {
+export const EmptyState: React.FC<EmptyStateProps> = ({
+  title,
+  description,
+  icon,
+  actionLabel,
+  onAction,
+  actionIcon,
+}) => {
   return (
-    <div className={cn("flex flex-col items-center justify-center p-12 text-center", className)}>
-      <div className="w-20 h-20 bg-black/5 dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
-        <Icon className="w-10 h-10 text-black/40 dark:text-cream/40" />
+    <div className="flex flex-col items-center justify-center text-center p-8 bg-white rounded-lg border border-slate-200 shadow-2xs">
+      <div className="w-12 h-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mb-3">
+        {icon || <FolderOpen size={24} />}
       </div>
-      <h3 className="font-playfair text-xl font-bold mb-2 text-black dark:text-cream">{title}</h3>
-      <p className="text-black/60 dark:text-cream/60 text-sm max-w-[250px]">
-        {description}
-      </p>
+      <h4 className="text-sm font-semibold text-slate-800">{title}</h4>
+      <p className="text-xs text-slate-500 max-w-sm mt-1 mb-4">{description}</p>
+      {actionLabel && onAction && (
+        <Button variant="primary" size="sm" onClick={onAction} leftIcon={actionIcon}>
+          {actionLabel}
+        </Button>
+      )}
     </div>
   );
-}
+};

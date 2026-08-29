@@ -1,59 +1,80 @@
 import React from 'react';
-import { Slot } from '@radix-ui/react-slot';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../utils/utils';
 
-const buttonVariants = cva(
-  'inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black dark:focus-visible:ring-cream focus-visible:ring-offset-2',
-  {
-    variants: {
-      variant: {
-        default:
-          'bg-yellow text-black hover:bg-yellow/90 shadow-lg shadow-yellow/20 active:scale-95',
-        destructive:
-          'bg-red-500 text-white hover:bg-red-600 shadow-lg shadow-red-500/20 active:scale-95',
-        outline:
-          'border-2 border-black dark:border-cream text-black dark:text-cream hover:bg-black/5 dark:hover:bg-cream/5 active:scale-95',
-        secondary:
-          'bg-black/5 dark:bg-cream/10 text-black dark:text-cream hover:bg-black/10 dark:hover:bg-cream/20 active:scale-95',
-        ghost:
-          'hover:bg-black/5 dark:hover:bg-cream/10 text-black dark:text-cream active:scale-95',
-        link: 'text-black dark:text-cream underline-offset-4 hover:underline',
-      },
-      size: {
-        default: 'h-12 px-6 py-2',
-        sm: 'h-9 px-4 text-xs',
-        lg: 'h-14 px-8 text-base',
-        icon: 'h-12 w-12',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-      size: 'default',
-    },
-  }
-);
-
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: 'primary' | 'emerald' | 'secondary' | 'outline' | 'danger' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  isLoading?: boolean;
+  leftIcon?: React.ReactNode;
+  rightIcon?: React.ReactNode;
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
-    // using a simple tag instead of Slot if radix isn't strictly required to be installed 
-    // to avoid compilation issues, since I only put radix in instructions implicitly
-    const Comp = asChild ? Slot : "button"
-    return (
-      <button
-        className={cn(buttonVariants({ variant, size, className }))}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-Button.displayName = "Button"
+export const Button: React.FC<ButtonProps> = ({
+  children,
+  variant = 'primary',
+  size = 'md',
+  isLoading = false,
+  leftIcon,
+  rightIcon,
+  className = '',
+  disabled,
+  ...props
+}) => {
+  const baseStyles =
+    'inline-flex items-center justify-center font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed select-none rounded-md';
 
-export { Button, buttonVariants }
+  const sizeStyles = {
+    sm: 'text-xs px-2.5 py-1.5 gap-1.5',
+    md: 'text-sm px-3.5 py-2 gap-2',
+    lg: 'text-base px-4.5 py-2.5 gap-2.5',
+  };
+
+  const variantStyles = {
+    primary:
+      'bg-[#0B1F3A] hover:bg-[#132B4F] text-white focus:ring-[#0B1F3A] shadow-xs active:bg-[#06101E]',
+    emerald:
+      'bg-[#10B981] hover:bg-[#059669] text-white focus:ring-[#10B981] shadow-xs active:bg-[#047857]',
+    secondary:
+      'bg-slate-100 hover:bg-slate-200 text-slate-800 focus:ring-slate-400 active:bg-slate-300',
+    outline:
+      'border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 focus:ring-slate-400 active:bg-slate-100',
+    danger:
+      'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-xs active:bg-red-800',
+    ghost:
+      'bg-transparent hover:bg-slate-100 text-slate-600 hover:text-slate-900 focus:ring-slate-300',
+  };
+
+  return (
+    <button
+      className={`${baseStyles} ${sizeStyles[size]} ${variantStyles[variant]} ${className}`}
+      disabled={disabled || isLoading}
+      {...props}
+    >
+      {isLoading ? (
+        <svg
+          className="animate-spin -ml-0.5 mr-2 h-4 w-4 text-current"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          />
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          />
+        </svg>
+      ) : (
+        leftIcon
+      )}
+      <span>{children}</span>
+      {!isLoading && rightIcon}
+    </button>
+  );
+};
