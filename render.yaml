@@ -20,7 +20,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://kootaflow.onrender.com
+        value: https://kootaflow.onrender.com,https://kootaflow-client.onrender.com
       - key: LOG_LEVEL
         value: info
       - key: ADMIN_EMAIL
