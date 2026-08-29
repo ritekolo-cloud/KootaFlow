@@ -128,22 +128,14 @@ export const LoginPage: React.FC = () => {
             <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center mb-3">
               Quick Demo Accounts
             </p>
-            <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="grid grid-cols-3 gap-2 text-xs">
               <button
                 type="button"
                 onClick={() => handleDemoFill('admin@kootaflow.com')}
                 className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
               >
-                <div className="font-semibold text-[#0B1F3A]">Super Admin</div>
+                <div className="font-semibold text-[#0B1F3A]">Admin</div>
                 <div className="text-[10px] text-slate-500 truncate">admin@kootaflow.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('chairperson@kootaflow.test')}
-                className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
-              >
-                <div className="font-semibold text-[#0B1F3A]">Chairperson</div>
-                <div className="text-[10px] text-slate-500 truncate">Amara Diallo</div>
               </button>
               <button
                 type="button"
@@ -151,7 +143,7 @@ export const LoginPage: React.FC = () => {
                 className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
               >
                 <div className="font-semibold text-[#0B1F3A]">Treasurer</div>
-                <div className="text-[10px] text-slate-500 truncate">Kofi Mensah</div>
+                <div className="text-[10px] text-slate-500 truncate">treasurer@kootaflow.test</div>
               </button>
               <button
                 type="button"
@@ -159,7 +151,7 @@ export const LoginPage: React.FC = () => {
                 className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
               >
                 <div className="font-semibold text-[#0B1F3A]">Member</div>
-                <div className="text-[10px] text-slate-500 truncate">Jabari Okafor</div>
+                <div className="text-[10px] text-slate-500 truncate">jabari.test@kootaflow.test</div>
               </button>
             </div>
             <p className="text-[10px] text-slate-400 text-center mt-2.5">

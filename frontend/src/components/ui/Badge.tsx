@@ -36,14 +36,14 @@ export const Badge: React.FC<BadgeProps> = ({
       case 'EXITED':
         computedVariant = 'danger';
         break;
-      case 'SUPER_ADMIN':
       case 'ADMIN':
         computedVariant = 'navy';
         break;
-      case 'CHAIRPERSON':
       case 'TREASURER':
-      case 'SECRETARY':
         computedVariant = 'emerald';
+        break;
+      case 'MEMBER':
+        computedVariant = 'neutral';
         break;
       case 'SHARE_PURCHASE':
       case 'SAVINGS_DEPOSIT':

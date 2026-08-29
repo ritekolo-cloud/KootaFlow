@@ -61,9 +61,7 @@ export const App: React.FC = () => {
         <Route
           path="members"
           element={
-            <ProtectedRoute
-              allowedRoles={['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY']}
-            >
+            <ProtectedRoute allowedRoles={['ADMIN', 'TREASURER']}>
               <MembersPage />
             </ProtectedRoute>
           }
@@ -71,9 +69,7 @@ export const App: React.FC = () => {
         <Route
           path="members/:id"
           element={
-            <ProtectedRoute
-              allowedRoles={['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY']}
-            >
+            <ProtectedRoute allowedRoles={['ADMIN', 'TREASURER']}>
               <MemberDetailPage />
             </ProtectedRoute>
           }
@@ -86,7 +82,7 @@ export const App: React.FC = () => {
         <Route
           path="share-out"
           element={
-            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON']}>
+            <ProtectedRoute allowedRoles={['ADMIN']}>
               <ShareOutPage />
             </ProtectedRoute>
           }
@@ -98,9 +94,7 @@ export const App: React.FC = () => {
         <Route
           path="groups"
           element={
-            <ProtectedRoute
-              allowedRoles={['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'SECRETARY']}
-            >
+            <ProtectedRoute allowedRoles={['ADMIN']}>
               <GroupsPage />
             </ProtectedRoute>
           }
@@ -109,7 +103,7 @@ export const App: React.FC = () => {
         <Route
           path="users"
           element={
-            <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN']}>
+            <ProtectedRoute allowedRoles={['ADMIN']}>
               <UsersPage />
             </ProtectedRoute>
           }

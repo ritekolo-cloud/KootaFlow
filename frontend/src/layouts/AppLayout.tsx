@@ -22,8 +22,7 @@ import { notificationsApi } from '../api';
 import { Badge } from '../components/ui/Badge';
 
 export const AppLayout: React.FC = () => {
-  const { user, logout, isMember, isTreasurer, isChairperson, isSecretary, isAdmin } =
-    useAuthStore();
+  const { user, logout, isMember, isTreasurer, isAdmin } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -59,68 +58,68 @@ export const AppLayout: React.FC = () => {
       to: '/',
       label: 'Dashboard',
       icon: <LayoutDashboard size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
     {
       to: '/groups',
       label: 'VSLA Groups',
       icon: <Building2 size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'SECRETARY'],
+      roles: ['ADMIN'],
     },
     {
       to: '/members',
       label: 'Members',
       icon: <Users size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY'],
+      roles: ['ADMIN', 'TREASURER'],
     },
     {
       to: '/savings',
       label: isMember() ? 'My Savings' : 'Savings',
       icon: <PiggyBank size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
     {
       to: '/shares',
       label: isMember() ? 'My Shares' : 'Shares',
       icon: <PieChart size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
     {
       to: '/loans',
       label: isMember() ? 'My Loans' : 'Loans',
       icon: <Landmark size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
     {
       to: '/share-out',
       label: 'Share-Out',
       icon: <TrendingUp size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON'],
+      roles: ['ADMIN'],
     },
     {
       to: '/transactions',
       label: isMember() ? 'My Ledger' : 'Transactions',
       icon: <ArrowLeftRight size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
     {
       to: '/users',
       label: 'User Accounts',
       icon: <ShieldCheck size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN'],
+      roles: ['ADMIN'],
     },
     {
       to: '/notifications',
       label: 'Notifications',
       icon: <Bell size={18} />,
       badge: unreadNotifications > 0 ? unreadNotifications : undefined,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
     {
       to: '/settings',
       label: 'Settings',
       icon: <Settings size={18} />,
-      roles: ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY', 'MEMBER'],
+      roles: ['ADMIN', 'TREASURER', 'MEMBER'],
     },
   ];
 

@@ -1,9 +1,9 @@
 import { Router } from 'express';
-import { requireOfficer } from '../../middleware/auth.middleware';
+import { requireStaff } from '../../middleware/auth.middleware';
 import { getDashboard } from './dashboard.controller';
 
 const router = Router();
 
-router.get('/', requireOfficer, getDashboard);
+router.get('/', requireStaff, getDashboard);
 
 export default router;

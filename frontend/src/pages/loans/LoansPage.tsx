@@ -25,7 +25,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 export const LoansPage: React.FC = () => {
-  const { user, isMember, isChairperson, isTreasurer, isOfficer, isAdmin } = useAuthStore();
+  const { user, isMember, isTreasurer, isAdmin } = useAuthStore();
 
   const [loans, setLoans] = useState<Loan[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -95,7 +95,7 @@ export const LoansPage: React.FC = () => {
   }, [page, statusFilter, user]);
 
   useEffect(() => {
-    if (isOfficer()) {
+    if (isAdmin() || isTreasurer()) {
       groupsApi.list({ limit: 1 }).then(async (res) => {
         if (res.data && res.data.length > 0) {
           const g = res.data[0];
@@ -263,7 +263,7 @@ export const LoansPage: React.FC = () => {
       </div>
 
       {/* KPI Stats (For Officers) */}
-      {isOfficer() && (
+      {(isAdmin() || isTreasurer()) && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <StatCard
             title="Total Outstanding Balance"
@@ -394,8 +394,8 @@ export const LoansPage: React.FC = () => {
                         </td>
                         <td className="px-4 py-3 text-right whitespace-nowrap">
                           <div className="flex justify-end items-center gap-1.5">
-                            {/* Chairperson Review Actions */}
-                            {loan.status === 'PENDING' && (isChairperson() || isAdmin()) && (
+                            {/* Admin Loan Review Actions */}
+                            {loan.status === 'PENDING' && isAdmin() && (
                               <>
                                 <button
                                   onClick={() => handleOpenApprove(loan)}

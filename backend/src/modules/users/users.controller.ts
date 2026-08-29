@@ -93,12 +93,12 @@ export async function updateUser(req: AuthenticatedRequest, res: Response, next:
   try {
     const id = parseInt(req.params.id, 10);
     const data = updateUserSchema.parse(req.body);
-    // Prevent demoting the last super admin
-    if (data.role && data.role !== UserRole.SUPER_ADMIN) {
+    // Prevent demoting the last admin
+    if (data.role && data.role !== UserRole.ADMIN) {
       const target = await prisma.user.findUnique({ where: { id } });
-      if (target?.role === UserRole.SUPER_ADMIN) {
-        const adminCount = await prisma.user.count({ where: { role: UserRole.SUPER_ADMIN, isActive: true } });
-        if (adminCount <= 1) throw new AppError('Cannot demote the only Super Admin', 400);
+      if (target?.role === UserRole.ADMIN) {
+        const adminCount = await prisma.user.count({ where: { role: UserRole.ADMIN, isActive: true } });
+        if (adminCount <= 1) throw new AppError('Cannot demote the only Admin', 400);
       }
     }
     const user = await prisma.user.update({ where: { id }, data });

@@ -22,7 +22,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 export const ShareOutPage: React.FC = () => {
-  const { user, isAdmin, isOfficer } = useAuthStore();
+  const { user, isAdmin, isStaff } = useAuthStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [cycles, setCycles] = useState<Cycle[]>([]);

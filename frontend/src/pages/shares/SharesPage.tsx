@@ -21,7 +21,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 export const SharesPage: React.FC = () => {
-  const { user, isMember, isTreasurer, isOfficer } = useAuthStore();
+  const { user, isMember, isTreasurer, isStaff } = useAuthStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [totalShares, setTotalShares] = useState(0);
@@ -59,7 +59,7 @@ export const SharesPage: React.FC = () => {
         setMyShares(res.data?.shares || []);
         setMyTotalShares(res.data?.summary?.totalShares || 0);
         setMyTotalValue(res.data?.summary?.totalValue || 0);
-      } else if (isOfficer()) {
+      } else if (isStaff()) {
         const [summaryRes, membersRes, groupsRes] = await Promise.all([
           sharesApi.getSummary(),
           membersApi.list({ limit: 100 }),

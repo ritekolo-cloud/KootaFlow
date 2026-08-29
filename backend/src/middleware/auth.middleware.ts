@@ -82,22 +82,12 @@ export function requireRole(...roles: UserRole[]) {
   };
 }
 
-/** Convenience guards */
-export const requireAdmin = requireRole(UserRole.SUPER_ADMIN, UserRole.ADMIN);
-export const requireOfficer = requireRole(
-  UserRole.SUPER_ADMIN,
-  UserRole.ADMIN,
-  UserRole.CHAIRPERSON,
-  UserRole.TREASURER,
-  UserRole.SECRETARY
-);
-export const requireTreasurer = requireRole(
-  UserRole.SUPER_ADMIN,
-  UserRole.ADMIN,
-  UserRole.TREASURER
-);
-export const requireChairperson = requireRole(
-  UserRole.SUPER_ADMIN,
-  UserRole.ADMIN,
-  UserRole.CHAIRPERSON
-);
+/**
+ * Clean 3-role guards:
+ * - ADMIN: System and group management, loan approvals, share-out, users.
+ * - TREASURER: Operational financial actions (deposits, withdrawals, share entries, loan repayments).
+ * - STAFF (ADMIN + TREASURER): Shared operational oversight.
+ */
+export const requireAdmin = requireRole(UserRole.ADMIN);
+export const requireTreasurer = requireRole(UserRole.ADMIN, UserRole.TREASURER);
+export const requireStaff = requireRole(UserRole.ADMIN, UserRole.TREASURER);

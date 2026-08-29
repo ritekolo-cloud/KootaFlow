@@ -18,8 +18,10 @@ import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
 import { Pagination } from '../../components/ui/Pagination';
 import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
+import { useAuthStore } from '../../store/auth.store';
 
 export const UsersPage: React.FC = () => {
+  const { user } = useAuthStore();
   const [users, setUsers] = useState<UserType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -198,7 +200,7 @@ export const UsersPage: React.FC = () => {
                         />
                       </td>
                       <td className="px-4 py-3 text-right whitespace-nowrap">
-                        {u.isActive && u.role !== 'SUPER_ADMIN' && (
+                        {u.isActive && u.id !== user?.id && (
                           <button
                             onClick={() => setDeactivateTarget(u)}
                             className="text-xs text-red-600 hover:text-red-800 font-medium hover:underline"
@@ -308,11 +310,8 @@ export const UsersPage: React.FC = () => {
               required
             >
               <option value="MEMBER">MEMBER</option>
-              <option value="CHAIRPERSON">CHAIRPERSON</option>
               <option value="TREASURER">TREASURER</option>
-              <option value="SECRETARY">SECRETARY</option>
               <option value="ADMIN">ADMIN</option>
-              <option value="SUPER_ADMIN">SUPER_ADMIN</option>
             </Select>
           </div>
         </form>

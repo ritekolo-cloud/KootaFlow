@@ -22,7 +22,7 @@ import { LoadingSpinner } from '../../components/ui/LoadingSpinner';
 import { EmptyState } from '../../components/ui/EmptyState';
 
 export const SavingsPage: React.FC = () => {
-  const { user, isMember, isTreasurer, isOfficer } = useAuthStore();
+  const { user, isMember, isTreasurer, isStaff } = useAuthStore();
 
   const [isLoading, setIsLoading] = useState(true);
   const [totalGroupSavings, setTotalGroupSavings] = useState<number>(0);
@@ -58,7 +58,7 @@ export const SavingsPage: React.FC = () => {
         ]);
         setMySavings(savingsRes.data || []);
         setMyTransactions(txnsRes.data?.transactions || []);
-      } else if (isOfficer()) {
+      } else if (isStaff()) {
         const [summaryRes, membersRes] = await Promise.all([
           savingsApi.getSummary(),
           membersApi.list({ limit: 100 }),

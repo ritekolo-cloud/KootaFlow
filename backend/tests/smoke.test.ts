@@ -2,12 +2,11 @@ import request from 'supertest';
 import { app } from '../src/server';
 import { prisma } from '../src/config/database';
 
-describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verification', () => {
+describe('KootaFlow — Live Database Smoke Tests & 3-Role Security Verification', () => {
   const defaultPassword = 'Admin@123456';
 
   let adminToken: string;
   let adminRefreshToken: string;
-  let chairpersonToken: string;
   let treasurerToken: string;
   let member1Token: string;
   let member2Token: string;
@@ -18,7 +17,7 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
   let createdLoanId: number;
 
   beforeAll(async () => {
-    // 1. Log in as Super Admin
+    // 1. Log in as Admin
     const adminLoginRes = await request(app)
       .post('/api/auth/login')
       .send({ email: 'admin@kootaflow.com', password: defaultPassword });
@@ -27,21 +26,14 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
     adminToken = adminLoginRes.body.data.accessToken;
     adminRefreshToken = adminLoginRes.body.data.refreshToken;
 
-    // 2. Log in as Chairperson
-    const chairLoginRes = await request(app)
-      .post('/api/auth/login')
-      .send({ email: 'chairperson@kootaflow.test', password: defaultPassword });
-    expect(chairLoginRes.status).toBe(200);
-    chairpersonToken = chairLoginRes.body.data.accessToken;
-
-    // 3. Log in as Treasurer
+    // 2. Log in as Treasurer
     const treasLoginRes = await request(app)
       .post('/api/auth/login')
       .send({ email: 'treasurer@kootaflow.test', password: defaultPassword });
     expect(treasLoginRes.status).toBe(200);
     treasurerToken = treasLoginRes.body.data.accessToken;
 
-    // 4. Log in as Member 1 (Jabari)
+    // 3. Log in as Member 1 (Jabari)
     const m1LoginRes = await request(app)
       .post('/api/auth/login')
       .send({ email: 'jabari.test@kootaflow.test', password: defaultPassword });
@@ -49,7 +41,7 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
     member1Token = m1LoginRes.body.data.accessToken;
     member1Id = m1LoginRes.body.data.user.memberProfile.id;
 
-    // 5. Log in as Member 2 (Fatou)
+    // 4. Log in as Member 2 (Fatou)
     const m2LoginRes = await request(app)
       .post('/api/auth/login')
       .send({ email: 'fatou.test@kootaflow.test', password: defaultPassword });
@@ -82,7 +74,7 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
       expect(res.body.database).toBe('connected');
-      expect(res.body.stats.users).toBeGreaterThanOrEqual(5);
+      expect(res.body.stats.users).toBeGreaterThanOrEqual(3);
       expect(res.body.stats.members).toBeGreaterThanOrEqual(8);
       expect(res.body.stats.groups).toBeGreaterThanOrEqual(1);
     });
@@ -96,7 +88,7 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
         .set('Authorization', `Bearer ${adminToken}`);
       expect(res.status).toBe(200);
       expect(res.body.data.email).toBe('admin@kootaflow.com');
-      expect(res.body.data.role).toBe('SUPER_ADMIN');
+      expect(res.body.data.role).toBe('ADMIN');
     });
 
     it('should refresh access token and rotate refresh token', async () => {
@@ -135,7 +127,7 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
 
   // ─── 3. Role-Based Permissions & Guard Tests ─────────────
   describe('3. Role-Based Permissions Enforcement', () => {
-    it('should allow Super Admin to list system users', async () => {
+    it('should allow Admin to list system users', async () => {
       const res = await request(app)
         .get('/api/users')
         .set('Authorization', `Bearer ${adminToken}`);
@@ -247,10 +239,17 @@ describe('KootaFlow Phase 6 — Live Database Smoke Tests & Security Verificatio
       expect(res.status).toBe(403);
     });
 
-    it('should allow Chairperson to approve and disburse the loan', async () => {
+    it('should deny Treasurer from approving a loan with 403 (Admin-only)', async () => {
       const res = await request(app)
         .patch(`/api/loans/${createdLoanId}/approve`)
-        .set('Authorization', `Bearer ${chairpersonToken}`);
+        .set('Authorization', `Bearer ${treasurerToken}`);
+      expect(res.status).toBe(403);
+    });
+
+    it('should allow Admin to approve and disburse the loan', async () => {
+      const res = await request(app)
+        .patch(`/api/loans/${createdLoanId}/approve`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(res.status).toBe(200);
       expect(res.body.data.status).toBe('ACTIVE');
       expect(res.body.data.disbursedAt).toBeDefined();

@@ -20,7 +20,7 @@ async function main() {
     update: {
       firstName: 'KootaFlow',
       lastName: 'Administrator',
-      role: UserRole.SUPER_ADMIN,
+      role: UserRole.ADMIN,
       isActive: true,
     },
     create: {
@@ -28,59 +28,40 @@ async function main() {
       passwordHash: hashedPassword,
       firstName: 'KootaFlow',
       lastName: 'Administrator',
-      role: UserRole.SUPER_ADMIN,
+      role: UserRole.ADMIN,
       isActive: true,
     },
   });
   console.log(`✅ Administrator ready: ${adminUser.email} (Role: ${adminUser.role})`);
 
-  // 2. Create Officer Test Accounts (Fictional demo data)
-  const officers = [
-    {
-      email: 'chairperson@kootaflow.test',
-      firstName: 'Amara',
-      lastName: 'Diallo',
-      phone: '+250780000001',
-      role: UserRole.CHAIRPERSON,
-    },
-    {
-      email: 'treasurer@kootaflow.test',
+  // 2. Create Treasurer Account (Fictional demo data)
+  const treasurer = await prisma.user.upsert({
+    where: { email: 'treasurer@kootaflow.test' },
+    update: {
       firstName: 'Kofi',
       lastName: 'Mensah',
       phone: '+250780000002',
       role: UserRole.TREASURER,
+      isActive: true,
     },
-    {
-      email: 'secretary@kootaflow.test',
-      firstName: 'Zainab',
-      lastName: 'Kamara',
-      phone: '+250780000003',
-      role: UserRole.SECRETARY,
+    create: {
+      email: 'treasurer@kootaflow.test',
+      passwordHash: hashedPassword,
+      firstName: 'Kofi',
+      lastName: 'Mensah',
+      phone: '+250780000002',
+      role: UserRole.TREASURER,
+      isActive: true,
     },
-  ];
+  });
+  console.log(`✅ Treasurer account ready: ${treasurer.email} (Role: ${treasurer.role})`);
 
-  for (const officer of officers) {
-    await prisma.user.upsert({
-      where: { email: officer.email },
-      update: {
-        firstName: officer.firstName,
-        lastName: officer.lastName,
-        phone: officer.phone,
-        role: officer.role,
-        isActive: true,
-      },
-      create: {
-        email: officer.email,
-        passwordHash: hashedPassword,
-        firstName: officer.firstName,
-        lastName: officer.lastName,
-        phone: officer.phone,
-        role: officer.role,
-        isActive: true,
-      },
-    });
-  }
-  console.log('✅ Officer accounts ready (Chairperson, Treasurer, Secretary)');
+  // Clean up any legacy non-standard test accounts
+  await prisma.user.deleteMany({
+    where: {
+      email: { in: ['chairperson@kootaflow.test', 'secretary@kootaflow.test'] },
+    },
+  });
 
   // 3. Create or Update Demo VSLA Group
   const group = await prisma.vslaGroup.upsert({
@@ -132,9 +113,9 @@ async function main() {
 
   // 5. Seed Fictional VSLA Members
   const mockMembers = [
-    { number: 'MEM-001', firstName: 'Amara', lastName: 'Diallo', phone: '+250780000001', email: 'chairperson@kootaflow.test', shares: 5, savings: 25000 },
+    { number: 'MEM-001', firstName: 'Amara', lastName: 'Diallo', phone: '+250780000001', email: 'amara.test@kootaflow.test', shares: 5, savings: 25000 },
     { number: 'MEM-002', firstName: 'Kofi', lastName: 'Mensah', phone: '+250780000002', email: 'treasurer@kootaflow.test', shares: 4, savings: 20000 },
-    { number: 'MEM-003', firstName: 'Zainab', lastName: 'Kamara', phone: '+250780000003', email: 'secretary@kootaflow.test', shares: 5, savings: 30000 },
+    { number: 'MEM-003', firstName: 'Zainab', lastName: 'Kamara', phone: '+250780000003', email: 'zainab.test@kootaflow.test', shares: 5, savings: 30000 },
     { number: 'MEM-004', firstName: 'Jabari', lastName: 'Okafor', phone: '+250780000004', email: 'jabari.test@kootaflow.test', shares: 3, savings: 15000 },
     { number: 'MEM-005', firstName: 'Fatou', lastName: 'Bah', phone: '+250780000005', email: 'fatou.test@kootaflow.test', shares: 4, savings: 22000 },
     { number: 'MEM-006', firstName: 'Tariq', lastName: 'Ndege', phone: '+250780000006', email: 'tariq.test@kootaflow.test', shares: 2, savings: 10000 },

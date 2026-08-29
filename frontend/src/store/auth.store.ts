@@ -17,13 +17,10 @@ interface AuthState {
   clearError: () => void;
 
   // Role Helpers
-  isSuperAdmin: () => boolean;
   isAdmin: () => boolean;
-  isChairperson: () => boolean;
   isTreasurer: () => boolean;
-  isSecretary: () => boolean;
   isMember: () => boolean;
-  isOfficer: () => boolean;
+  isStaff: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -117,14 +114,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  isSuperAdmin: () => get().user?.role === 'SUPER_ADMIN',
-  isAdmin: () => get().user?.role === 'ADMIN' || get().user?.role === 'SUPER_ADMIN',
-  isChairperson: () => get().user?.role === 'CHAIRPERSON',
+  isAdmin: () => get().user?.role === 'ADMIN',
   isTreasurer: () => get().user?.role === 'TREASURER',
-  isSecretary: () => get().user?.role === 'SECRETARY',
   isMember: () => get().user?.role === 'MEMBER',
-  isOfficer: () => {
+  isStaff: () => {
     const role = get().user?.role;
-    return !!role && ['SUPER_ADMIN', 'ADMIN', 'CHAIRPERSON', 'TREASURER', 'SECRETARY'].includes(role);
+    return role === 'ADMIN' || role === 'TREASURER';
   },
 }));

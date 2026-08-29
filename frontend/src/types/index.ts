@@ -2,13 +2,7 @@
 // KootaFlow VSLA Management System — TypeScript Type Definitions
 // ─────────────────────────────────────────────────────────────
 
-export type UserRole =
-  | 'SUPER_ADMIN'
-  | 'ADMIN'
-  | 'CHAIRPERSON'
-  | 'TREASURER'
-  | 'SECRETARY'
-  | 'MEMBER';
+export type UserRole = 'ADMIN' | 'TREASURER' | 'MEMBER';
 
 export type MemberStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'EXITED';
 
@@ -290,6 +284,7 @@ export interface DashboardStats {
   financials: {
     totalShareValue: number;
     totalSavings: number;
+    totalSharesPurchased?: number;
   };
   recentTransactions: Transaction[];
   pendingLoanDetails: Loan[];
