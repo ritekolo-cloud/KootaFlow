@@ -7,78 +7,81 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────────────────────
+
 enum UserRole {
-  USER
+  SUPER_ADMIN
   ADMIN
+  CHAIRPERSON
+  TREASURER
+  SECRETARY
+  MEMBER
 }
 
-model HymnCategory {
-  id                  Int      @id @default(autoincrement())
-  code                String   @unique
-  name                String
-  description         String?
-  language            String?
-  languageName        String?  @map("language_name")
-  region              String?
-  owner               String?
-  sourceOrder         Int      @map("source_order")
-  sourceDeclaredCount Int?     @map("source_declared_count")
-  hymnCount           Int      @map("hymn_count")
-  hymns               Hymn[]
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-
-  @@map("hymn_categories")
+enum MemberStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  EXITED
 }
 
-model Hymn {
-  id             Int          @id @default(autoincrement())
-  sourceId       String       @unique @map("source_id")
-  sourceOrder    Int          @map("source_order")
-  categoryOrder  Int          @map("category_order")
-  categoryId     Int          @map("category_id")
-  category       HymnCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryCode   String       @map("category_code")
-  number         String
-  numberNumeric  Int?         @map("number_numeric")
-  numberSuffix   String?      @map("number_suffix")
-  duplicateIndex Int          @default(1) @map("duplicate_index")
-  title          String
-  gamme          String?
-  author         String?
-  lyrics         String       @db.Text
-  lyricsLines    Json         @map("lyrics_lines")
-  verses         Json
-  favorites      Favorite[]
-  recentViews    RecentHymn[]
-  playlistItems  PlaylistHymn[]
-  createdAt      DateTime     @default(now()) @map("created_at")
-  updatedAt      DateTime     @updatedAt @map("updated_at")
-
-  @@unique([categoryId, number, duplicateIndex])
-  @@index([number], map: "hymns_number_idx")
-  @@index([title], map: "hymns_title_idx")
-  @@index([categoryId], map: "hymns_category_id_idx")
-  @@index([categoryCode], map: "hymns_category_code_idx")
-  @@index([categoryId, numberNumeric, numberSuffix], map: "hymns_category_number_idx")
-  @@map("hymns")
+enum LoanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  PAID
+  DEFAULTED
 }
+
+enum TransactionType {
+  SHARE_PURCHASE
+  SAVINGS_DEPOSIT
+  SAVINGS_WITHDRAWAL
+  LOAN_DISBURSEMENT
+  LOAN_REPAYMENT
+  FINE
+  SHARE_OUT
+  WELFARE_CONTRIBUTION
+}
+
+enum CycleStatus {
+  PLANNING
+  ACTIVE
+  COMPLETED
+}
+
+enum MeetingFrequency {
+  WEEKLY
+  BI_WEEKLY
+  MONTHLY
+}
+
+// ─────────────────────────────────────────────────────────────
+// USER & AUTHENTICATION
+// ─────────────────────────────────────────────────────────────
 
 model User {
-  id           Int            @id @default(autoincrement())
-  email        String         @unique
-  passwordHash String         @map("password_hash")
-  displayName  String         @map("display_name")
-  role         UserRole       @default(USER)
-  settings     Json           @default("{}")
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  passwordHash  String         @map("password_hash")
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  phone         String?
+  role          UserRole       @default(MEMBER)
+  isActive      Boolean        @default(true) @map("is_active")
+  avatarUrl     String?        @map("avatar_url")
   refreshTokens RefreshToken[]
-  favorites    Favorite[]
-  recentHymns  RecentHymn[]
-  playlists    Playlist[]
-  createdAt    DateTime       @default(now()) @map("created_at")
-  updatedAt    DateTime       @updatedAt @map("updated_at")
+  memberProfile Member?
+  approvedLoans Loan[]         @relation("ApprovedLoans")
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
-  @@map("app_users")
+  @@map("users")
 }
 
 model RefreshToken {
@@ -94,59 +97,247 @@ model RefreshToken {
   @@map("refresh_tokens")
 }
 
-model Favorite {
+// ─────────────────────────────────────────────────────────────
+// VSLA GROUPS & CYCLES
+// ─────────────────────────────────────────────────────────────
+
+model VslaGroup {
+  id                    Int              @id @default(autoincrement())
+  name                  String
+  code                  String           @unique
+  description           String?
+  meetingFrequency      MeetingFrequency @default(WEEKLY) @map("meeting_frequency")
+  sharePrice            Decimal          @default(1000) @map("share_price") @db.Decimal(12, 2)
+  maxSharesPerMember    Int              @default(5) @map("max_shares_per_member")
+  loanInterestRate      Decimal          @default(10) @map("loan_interest_rate") @db.Decimal(5, 2)
+  maxLoanDurationMonths Int              @default(3) @map("max_loan_duration_months")
+  welfareContribution   Decimal          @default(200) @map("welfare_contribution") @db.Decimal(12, 2)
+  cycles                Cycle[]
+  members               Member[]
+  transactions          Transaction[]
+  createdAt             DateTime         @default(now()) @map("created_at")
+  updatedAt             DateTime         @updatedAt @map("updated_at")
+
+  @@map("vsla_groups")
+}
+
+model Cycle {
+  id          Int         @id @default(autoincrement())
+  groupId     Int         @map("group_id")
+  group       VslaGroup   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  cycleNumber Int         @map("cycle_number")
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime?   @map("end_date")
+  status      CycleStatus @default(ACTIVE)
+  shares      Share[]
+  loans       Loan[]
+  shareOuts   ShareOut[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  @@unique([groupId, cycleNumber])
+  @@map("cycles")
+}
+
+// ─────────────────────────────────────────────────────────────
+// MEMBERS
+// ─────────────────────────────────────────────────────────────
+
+model Member {
+  id                    Int                    @id @default(autoincrement())
+  userId                Int?                   @unique @map("user_id")
+  user                  User?                  @relation(fields: [userId], references: [id], onDelete: SetNull)
+  groupId               Int                    @map("group_id")
+  group                 VslaGroup              @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberNumber          String                 @map("member_number")
+  firstName             String                 @map("first_name")
+  lastName              String                 @map("last_name")
+  phone                 String?
+  nationalId            String?                @map("national_id")
+  status                MemberStatus           @default(ACTIVE)
+  joinedAt              DateTime               @default(now()) @map("joined_at")
+  shares                Share[]
+  savingsAccounts       SavingsAccount[]
+  loans                 Loan[]
+  transactions          Transaction[]
+  shareOutDistributions ShareOutDistribution[]
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
+
+  @@unique([groupId, memberNumber])
+  @@map("members")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SHARES & SAVINGS
+// ─────────────────────────────────────────────────────────────
+
+model Share {
+  id            Int      @id @default(autoincrement())
+  memberId      Int      @map("member_id")
+  member        Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  cycleId       Int      @map("cycle_id")
+  cycle         Cycle    @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  quantity      Int      @default(1)
+  pricePerShare Decimal  @map("price_per_share") @db.Decimal(12, 2)
+  totalAmount   Decimal  @map("total_amount") @db.Decimal(12, 2)
+  purchaseDate  DateTime @default(now()) @map("purchase_date")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([memberId])
+  @@index([cycleId])
+  @@map("shares")
+}
+
+model SavingsAccount {
+  id           Int           @id @default(autoincrement())
+  memberId     Int           @map("member_id")
+  member       Member        @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  accountType  String        @default("VOLUNTARY") @map("account_type")
+  balance      Decimal       @default(0) @db.Decimal(12, 2)
+  transactions Transaction[]
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+
+  @@unique([memberId, accountType])
+  @@map("savings_accounts")
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOANS & REPAYMENTS
+// ─────────────────────────────────────────────────────────────
+
+model Loan {
+  id               Int             @id @default(autoincrement())
+  memberId         Int             @map("member_id")
+  member           Member          @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  cycleId          Int             @map("cycle_id")
+  cycle            Cycle           @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  principalAmount  Decimal         @map("principal_amount") @db.Decimal(12, 2)
+  interestRate     Decimal         @map("interest_rate") @db.Decimal(5, 2)
+  interestAmount   Decimal         @map("interest_amount") @db.Decimal(12, 2)
+  totalRepayable   Decimal         @map("total_repayable") @db.Decimal(12, 2)
+  balanceRemaining Decimal         @map("balance_remaining") @db.Decimal(12, 2)
+  durationMonths   Int             @default(1) @map("duration_months")
+  purpose          String?
+  status           LoanStatus      @default(PENDING)
+  approvedById     Int?            @map("approved_by_id")
+  approvedBy       User?           @relation("ApprovedLoans", fields: [approvedById], references: [id], onDelete: SetNull)
+  approvedAt       DateTime?       @map("approved_at")
+  disbursedAt      DateTime?       @map("disbursed_at")
+  dueDate          DateTime?       @map("due_date")
+  repayments       LoanRepayment[]
+  createdAt        DateTime        @default(now()) @map("created_at")
+  updatedAt        DateTime        @updatedAt @map("updated_at")
+
+  @@index([memberId])
+  @@index([cycleId])
+  @@map("loans")
+}
+
+model LoanRepayment {
+  id               Int      @id @default(autoincrement())
+  loanId           Int      @map("loan_id")
+  loan             Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  amountPaid       Decimal  @map("amount_paid") @db.Decimal(12, 2)
+  principalPortion Decimal  @default(0) @map("principal_portion") @db.Decimal(12, 2)
+  interestPortion  Decimal  @default(0) @map("interest_portion") @db.Decimal(12, 2)
+  remainingBalance Decimal  @map("remaining_balance") @db.Decimal(12, 2)
+  paymentDate      DateTime @default(now()) @map("payment_date")
+  receiptNumber    String?  @map("receipt_number")
+  notes            String?
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([loanId])
+  @@map("loan_repayments")
+}
+
+// ─────────────────────────────────────────────────────────────
+// FINANCIAL TRANSACTIONS & AUDIT TRAIL
+// ─────────────────────────────────────────────────────────────
+
+model Transaction {
+  id               Int             @id @default(autoincrement())
+  groupId          Int             @map("group_id")
+  group            VslaGroup       @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  memberId         Int?            @map("member_id")
+  member           Member?         @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  savingsAccountId Int?            @map("savings_account_id")
+  savingsAccount   SavingsAccount? @relation(fields: [savingsAccountId], references: [id], onDelete: SetNull)
+  type             TransactionType
+  amount           Decimal         @db.Decimal(12, 2)
+  balanceAfter     Decimal?        @map("balance_after") @db.Decimal(12, 2)
+  reference        String?
+  description      String?
+  transactionDate  DateTime        @default(now()) @map("transaction_date")
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  @@index([groupId, transactionDate])
+  @@index([memberId])
+  @@map("transactions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// SHARE-OUT (CYCLE CONCLUSION)
+// ─────────────────────────────────────────────────────────────
+
+model ShareOut {
+  id               Int                    @id @default(autoincrement())
+  cycleId          Int                    @map("cycle_id")
+  cycle            Cycle                  @relation(fields: [cycleId], references: [id], onDelete: Cascade)
+  totalFunds       Decimal                @map("total_funds") @db.Decimal(14, 2)
+  totalShares      Int                    @map("total_shares")
+  valuePerShare    Decimal                @map("value_per_share") @db.Decimal(12, 2)
+  distributionDate DateTime               @default(now()) @map("distribution_date")
+  notes            String?
+  distributions    ShareOutDistribution[]
+  createdAt        DateTime               @default(now()) @map("created_at")
+
+  @@map("share_outs")
+}
+
+model ShareOutDistribution {
+  id             Int      @id @default(autoincrement())
+  shareOutId     Int      @map("share_out_id")
+  shareOut       ShareOut @relation(fields: [shareOutId], references: [id], onDelete: Cascade)
+  memberId       Int      @map("member_id")
+  member         Member   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  sharesOwned    Int      @map("shares_owned")
+  grossAmount    Decimal  @map("gross_amount") @db.Decimal(12, 2)
+  loanDeductions Decimal  @default(0) @map("loan_deductions") @db.Decimal(12, 2)
+  netPayout      Decimal  @map("net_payout") @db.Decimal(12, 2)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("share_out_distributions")
+}
+
+// ─────────────────────────────────────────────────────────────
+// NOTIFICATIONS & AUDIT LOGS
+// ─────────────────────────────────────────────────────────────
+
+model Notification {
   id        Int      @id @default(autoincrement())
   userId    Int      @map("user_id")
-  hymnId    Int      @map("hymn_id")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hymn      Hymn     @relation(fields: [hymnId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("INFO")
+  isRead    Boolean  @default(false) @map("is_read")
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@unique([userId, hymnId])
-  @@index([hymnId])
-  @@map("favorites")
+  @@index([userId, isRead])
+  @@map("notifications")
 }
 
-model RecentHymn {
+model AuditLog {
   id        Int      @id @default(autoincrement())
-  userId    Int      @map("user_id")
-  hymnId    Int      @map("hymn_id")
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  hymn      Hymn     @relation(fields: [hymnId], references: [id], onDelete: Cascade)
-  viewCount Int      @default(1) @map("view_count")
-  viewedAt  DateTime @default(now()) @map("viewed_at")
+  userId    Int?     @map("user_id")
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  entity    String
+  entityId  Int?     @map("entity_id")
+  details   Json?
+  createdAt DateTime @default(now()) @map("created_at")
 
-  @@unique([userId, hymnId])
-  @@index([userId, viewedAt])
-  @@index([hymnId])
-  @@map("recent_hymns")
-}
-
-model Playlist {
-  id          Int            @id @default(autoincrement())
-  userId      Int            @map("user_id")
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name        String
-  description String?
-  isPublic    Boolean        @default(false) @map("is_public")
-  items       PlaylistHymn[]
-  createdAt   DateTime       @default(now()) @map("created_at")
-  updatedAt   DateTime       @updatedAt @map("updated_at")
-
-  @@index([userId])
-  @@map("playlists")
-}
-
-model PlaylistHymn {
-  id         Int      @id @default(autoincrement())
-  playlistId Int      @map("playlist_id")
-  hymnId     Int      @map("hymn_id")
-  position   Int      @default(0)
-  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
-  hymn       Hymn     @relation(fields: [hymnId], references: [id], onDelete: Cascade)
-  createdAt  DateTime @default(now()) @map("created_at")
-
-  @@unique([playlistId, hymnId])
-  @@index([hymnId])
-  @@map("playlist_hymns")
+  @@map("audit_logs")
 }

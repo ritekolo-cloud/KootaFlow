@@ -1,0 +1,82 @@
+import { Request, Response, NextFunction } from 'express';
+import { verifyAccessToken } from '../config/jwt';
+import { prisma } from '../config/database';
+import { AppError } from './error.middleware';
+import { UserRole } from '@prisma/client';
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    id: number;
+    email: string;
+    role: UserRole;
+    isActive: boolean;
+  };
+}
+
+/**
+ * Authenticate via Bearer JWT. Attaches req.user on success.
+ */
+export async function authenticate(
+  req: AuthenticatedRequest,
+  _res: Response,
+  next: NextFunction
+): Promise<void> {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      throw new AppError('Authentication required', 401);
+    }
+
+    const token = authHeader.slice(7);
+    const payload = verifyAccessToken(token);
+
+    const user = await prisma.user.findUnique({
+      where: { id: parseInt(payload.userId, 10) },
+      select: { id: true, email: true, role: true, isActive: true },
+    });
+
+    if (!user || !user.isActive) {
+      throw new AppError('Account not found or inactive', 401);
+    }
+
+    req.user = user;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * Require specific roles. Must be used AFTER authenticate().
+ */
+export function requireRole(...roles: UserRole[]) {
+  return (req: AuthenticatedRequest, _res: Response, next: NextFunction): void => {
+    if (!req.user) {
+      return next(new AppError('Authentication required', 401));
+    }
+    if (!roles.includes(req.user.role)) {
+      return next(new AppError('Insufficient permissions', 403));
+    }
+    next();
+  };
+}
+
+/** Convenience guards */
+export const requireAdmin = requireRole(UserRole.SUPER_ADMIN, UserRole.ADMIN);
+export const requireOfficer = requireRole(
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.CHAIRPERSON,
+  UserRole.TREASURER,
+  UserRole.SECRETARY
+);
+export const requireTreasurer = requireRole(
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.TREASURER
+);
+export const requireChairperson = requireRole(
+  UserRole.SUPER_ADMIN,
+  UserRole.ADMIN,
+  UserRole.CHAIRPERSON
+);
