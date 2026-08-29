@@ -8,20 +8,28 @@ import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 export async function listTransactions(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const { page, limit, skip } = parsePagination(req.query as Record<string, unknown>);
-    const groupId = req.query.groupId ? parseInt(req.query.groupId as string, 10) : undefined;
-    const memberId = req.query.memberId ? parseInt(req.query.memberId as string, 10) : undefined;
+    const requestedGroupId = req.query.groupId ? parseInt(req.query.groupId as string, 10) : undefined;
+    const requestedMemberId = req.query.memberId ? parseInt(req.query.memberId as string, 10) : undefined;
     const type = req.query.type as TransactionType | undefined;
     const from = req.query.from as string | undefined;
     const to = req.query.to as string | undefined;
 
     const where: Record<string, unknown> = {};
-    if (groupId) where.groupId = groupId;
-    if (memberId) where.memberId = memberId;
     if (type) where.type = type;
     if (from || to) {
       where.transactionDate = {};
       if (from) (where.transactionDate as Record<string, unknown>).gte = new Date(from);
       if (to) (where.transactionDate as Record<string, unknown>).lte = new Date(to);
+    }
+
+    // Strict Privacy Guard: If authenticated as MEMBER, force their own memberId
+    if (req.user?.role === 'MEMBER') {
+      const ownMemberId = req.user.memberProfile?.id;
+      if (!ownMemberId) throw new AppError('Member profile not linked to user', 400);
+      where.memberId = ownMemberId;
+    } else {
+      if (requestedMemberId) where.memberId = requestedMemberId;
+      if (requestedGroupId) where.groupId = requestedGroupId;
     }
 
     const [transactions, total] = await Promise.all([
@@ -68,6 +76,12 @@ export async function getTransaction(req: AuthenticatedRequest, res: Response, n
       },
     });
     if (!transaction) throw new AppError('Transaction not found', 404);
+
+    // Strict Privacy Guard: If authenticated as MEMBER, verify transaction belongs to them
+    if (req.user?.role === 'MEMBER' && transaction.memberId !== req.user.memberProfile?.id) {
+      throw new AppError('Access denied: You can only view your own transactions', 403);
+    }
+
     sendSuccess(res, transaction, 'Transaction retrieved');
   } catch (err) {
     next(err);

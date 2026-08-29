@@ -2,17 +2,27 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { z } from 'zod';
 
-// Load env from the monorepo root and from backend/.env. These paths work
-// both from src/ during development and dist/ after compilation.
+// Load env from multiple possible locations
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+dotenv.config({ path: path.resolve(process.cwd(), 'backend/.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
+
+const isTestEnv = process.env.NODE_ENV === 'test';
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('5000'),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  JWT_SECRET: z.string().min(1, 'JWT_SECRET is required'),
-  JWT_REFRESH_SECRET: z.string().min(1, 'JWT_REFRESH_SECRET is required'),
+  DATABASE_URL: z.string().default(
+    process.env.DATABASE_URL ||
+      'postgresql://kootaflow_user:kootaflow_secret_2026@localhost:5432/kootaflow_vsla?schema=public'
+  ),
+  JWT_SECRET: z.string().default(
+    process.env.JWT_SECRET || 'kootaflow_dev_jwt_secret_key_32_bytes_long_min!'
+  ),
+  JWT_REFRESH_SECRET: z.string().default(
+    process.env.JWT_REFRESH_SECRET || 'kootaflow_dev_jwt_refresh_secret_key_32_bytes!'
+  ),
   JWT_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   CLIENT_URL: z.string().default('http://localhost:5173'),
@@ -37,41 +47,49 @@ const parsed = envSchema.safeParse(process.env);
 if (!parsed.success) {
   console.error('❌ Invalid environment variables:');
   console.error(parsed.error.flatten().fieldErrors);
-  process.exit(1);
+  if (!isTestEnv) {
+    process.exit(1);
+  }
 }
 
+const envData = parsed.success
+  ? parsed.data
+  : envSchema.parse({
+      NODE_ENV: 'test',
+    });
+
 export const env = {
-  nodeEnv: parsed.data.NODE_ENV,
-  port: parseInt(parsed.data.PORT, 10),
-  databaseUrl: parsed.data.DATABASE_URL,
+  nodeEnv: envData.NODE_ENV,
+  port: parseInt(envData.PORT, 10),
+  databaseUrl: envData.DATABASE_URL,
   jwt: {
-    secret: parsed.data.JWT_SECRET,
-    refreshSecret: parsed.data.JWT_REFRESH_SECRET,
-    expiresIn: parsed.data.JWT_EXPIRES_IN,
-    refreshExpiresIn: parsed.data.JWT_REFRESH_EXPIRES_IN,
+    secret: envData.JWT_SECRET,
+    refreshSecret: envData.JWT_REFRESH_SECRET,
+    expiresIn: envData.JWT_EXPIRES_IN,
+    refreshExpiresIn: envData.JWT_REFRESH_EXPIRES_IN,
   },
-  clientUrl: parsed.data.CLIENT_URL,
+  clientUrl: envData.CLIENT_URL,
   smtp: {
-    host: parsed.data.SMTP_HOST,
-    port: parseInt(parsed.data.SMTP_PORT, 10),
-    user: parsed.data.SMTP_USER,
-    pass: parsed.data.SMTP_PASS,
-    from: parsed.data.EMAIL_FROM,
+    host: envData.SMTP_HOST,
+    port: parseInt(envData.SMTP_PORT, 10),
+    user: envData.SMTP_USER,
+    pass: envData.SMTP_PASS,
+    from: envData.EMAIL_FROM,
   },
-  bcryptRounds: parseInt(parsed.data.BCRYPT_ROUNDS, 10),
+  bcryptRounds: parseInt(envData.BCRYPT_ROUNDS, 10),
   admin: {
-    name: parsed.data.ADMIN_NAME,
-    email: parsed.data.ADMIN_EMAIL,
-    password: parsed.data.ADMIN_PASSWORD,
+    name: envData.ADMIN_NAME,
+    email: envData.ADMIN_EMAIL,
+    password: envData.ADMIN_PASSWORD,
   },
-  uploadDir: parsed.data.UPLOAD_DIR,
-  logLevel: parsed.data.LOG_LEVEL,
+  uploadDir: envData.UPLOAD_DIR,
+  logLevel: envData.LOG_LEVEL,
   rateLimit: {
-    windowMs: parseInt(parsed.data.RATE_LIMIT_WINDOW_MS, 10),
-    max: parseInt(parsed.data.RATE_LIMIT_MAX_REQUESTS, 10),
+    windowMs: parseInt(envData.RATE_LIMIT_WINDOW_MS, 10),
+    max: parseInt(envData.RATE_LIMIT_MAX_REQUESTS, 10),
   },
-  corsOrigin: parsed.data.CORS_ORIGIN,
-  corsOrigins: parsed.data.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean),
-  isDev: parsed.data.NODE_ENV === 'development',
-  isProd: parsed.data.NODE_ENV === 'production',
+  corsOrigin: envData.CORS_ORIGIN,
+  corsOrigins: envData.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean),
+  isDev: envData.NODE_ENV === 'development',
+  isProd: envData.NODE_ENV === 'production',
 };

@@ -44,9 +44,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const res = await authApi.login(credentials);
-      const { accessToken, user } = res.data;
+      const { accessToken, refreshToken, user } = res.data;
 
       localStorage.setItem('kootaflow_token', accessToken);
+      if (refreshToken) {
+        localStorage.setItem('kootaflow_refresh_token', refreshToken);
+      }
       localStorage.setItem('kootaflow_user', JSON.stringify(user));
 
       set({
@@ -68,12 +71,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
+    const refreshToken = localStorage.getItem('kootaflow_refresh_token');
     try {
-      await authApi.logout();
+      if (refreshToken) {
+        await authApi.logout(refreshToken);
+      } else {
+        await authApi.logout();
+      }
     } catch {
       // ignore
     } finally {
       localStorage.removeItem('kootaflow_token');
+      localStorage.removeItem('kootaflow_refresh_token');
       localStorage.removeItem('kootaflow_user');
       set({ user: null, token: null, isAuthenticated: false });
     }
@@ -92,6 +101,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       set({ user: res.data, isAuthenticated: true, isLoading: false });
     } catch {
       localStorage.removeItem('kootaflow_token');
+      localStorage.removeItem('kootaflow_refresh_token');
       localStorage.removeItem('kootaflow_user');
       set({ user: null, token: null, isAuthenticated: false, isLoading: false });
     }

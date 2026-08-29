@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { requireOfficer } from '../../middleware/auth.middleware';
 import { listTransactions, getTransaction } from './transactions.controller';
 
 const router = Router();
 
-router.get('/', requireOfficer, listTransactions);
-router.get('/:id', requireOfficer, getTransaction);
+// Member-scoped if role is MEMBER; full ledger for officers
+router.get('/', listTransactions);
+router.get('/:id', getTransaction);
 
 export default router;

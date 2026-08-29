@@ -33,13 +33,19 @@ async function getOrCreateAccount(memberId: number, accountType: string) {
 export async function getSavingsAccount(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const memberId = parseInt(req.params.memberId, 10);
+
+    // Privacy Guard: If authenticated as MEMBER, can only view own savings
+    if (req.user?.role === 'MEMBER' && req.user.memberProfile?.id !== memberId) {
+      throw new AppError('Access denied: You can only view your own savings account', 403);
+    }
+
     const member = await prisma.member.findUnique({ where: { id: memberId } });
     if (!member) throw new AppError('Member not found', 404);
 
     const accounts = await prisma.savingsAccount.findMany({
       where: { memberId },
       include: {
-        transactions: { orderBy: { transactionDate: 'desc' }, take: 10 },
+        transactions: { orderBy: { transactionDate: 'desc' }, take: 20 },
       },
     });
     sendSuccess(res, accounts, 'Savings accounts retrieved');

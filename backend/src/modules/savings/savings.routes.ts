@@ -7,7 +7,7 @@ import {
 const router = Router();
 
 router.get('/summary', requireOfficer, getSavingsSummary);
-router.get('/member/:memberId', requireOfficer, getSavingsAccount);
+router.get('/member/:memberId', getSavingsAccount); // Scoped to own member if role is MEMBER
 router.post('/deposit', requireTreasurer, deposit);
 router.post('/withdraw', requireTreasurer, withdraw);
 

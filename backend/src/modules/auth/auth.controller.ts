@@ -2,9 +2,9 @@ import { Response, NextFunction } from 'express';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { prisma } from '../../config/database';
-import { signAccessToken, signRefreshToken, verifyRefreshToken } from '../../config/jwt';
+import { signAccessToken } from '../../config/jwt';
 import { comparePassword, hashPassword } from '../../utils/hash';
-import { sendSuccess, sendError } from '../../utils/response';
+import { sendSuccess } from '../../utils/response';
 import { AppError } from '../../middleware/error.middleware';
 import { AuthenticatedRequest } from '../../middleware/auth.middleware';
 import { logger } from '../../utils/logger';
@@ -23,6 +23,10 @@ const changePasswordSchema = z.object({
     .regex(/[0-9]/, 'Must contain a number'),
 });
 
+function hashToken(rawToken: string): string {
+  return crypto.createHash('sha256').update(rawToken).digest('hex');
+}
+
 // ─── Login ────────────────────────────────────────────────────────────────
 export async function login(
   req: AuthenticatedRequest,
@@ -32,7 +36,20 @@ export async function login(
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        memberProfile: {
+          select: {
+            id: true,
+            memberNumber: true,
+            groupId: true,
+            status: true,
+          },
+        },
+      },
+    });
+
     if (!user || !user.isActive) {
       throw new AppError('Invalid email or password', 401);
     }
@@ -49,13 +66,13 @@ export async function login(
     });
 
     const rawRefresh = crypto.randomBytes(40).toString('hex');
-    const refreshHash = crypto.createHash('sha256').update(rawRefresh).digest('hex');
+    const refreshHash = hashToken(rawRefresh);
 
     await prisma.refreshToken.create({
       data: {
         userId: user.id,
         tokenHash: refreshHash,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
       },
     });
 
@@ -70,24 +87,29 @@ export async function login(
       },
     });
 
-    sendSuccess(res, {
-      accessToken,
-      refreshToken: rawRefresh,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        avatarUrl: user.avatarUrl,
+    sendSuccess(
+      res,
+      {
+        accessToken,
+        refreshToken: rawRefresh,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          avatarUrl: user.avatarUrl,
+          memberProfile: user.memberProfile,
+        },
       },
-    }, 'Login successful');
+      'Login successful'
+    );
   } catch (err) {
     next(err);
   }
 }
 
-// ─── Refresh ──────────────────────────────────────────────────────────────
+// ─── Refresh (Unified & Rotated) ──────────────────────────────────────────
 export async function refresh(
   req: AuthenticatedRequest,
   res: Response,
@@ -97,26 +119,67 @@ export async function refresh(
     const { refreshToken } = req.body as { refreshToken?: string };
     if (!refreshToken) throw new AppError('Refresh token required', 400);
 
-    // We sign refresh tokens with JWT now — verify it first for expiry
-    let payload: { userId: string };
-    try {
-      payload = verifyRefreshToken(refreshToken);
-    } catch {
+    const tokenHash = hashToken(refreshToken);
+
+    const tokenRecord = await prisma.refreshToken.findUnique({
+      where: { tokenHash },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    if (
+      !tokenRecord ||
+      tokenRecord.revokedAt !== null ||
+      tokenRecord.expiresAt.getTime() < Date.now()
+    ) {
       throw new AppError('Invalid or expired refresh token', 401);
     }
 
-    // Also support raw-hash tokens (legacy from seed — not applicable, but defensive)
-    const userId = parseInt(payload.userId, 10);
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.isActive) throw new AppError('User not found or inactive', 401);
+    if (!tokenRecord.user || !tokenRecord.user.isActive) {
+      throw new AppError('Account is inactive or disabled', 401);
+    }
 
-    const accessToken = signAccessToken({
-      userId: String(user.id),
-      email: user.email,
-      role: user.role,
+    // Revoke old token record (Rotation)
+    await prisma.refreshToken.update({
+      where: { id: tokenRecord.id },
+      data: { revokedAt: new Date() },
     });
 
-    sendSuccess(res, { accessToken }, 'Token refreshed');
+    // Create new refresh token
+    const newRawRefresh = crypto.randomBytes(40).toString('hex');
+    const newRefreshHash = hashToken(newRawRefresh);
+
+    await prisma.refreshToken.create({
+      data: {
+        userId: tokenRecord.user.id,
+        tokenHash: newRefreshHash,
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      },
+    });
+
+    // Issue new access token
+    const newAccessToken = signAccessToken({
+      userId: String(tokenRecord.user.id),
+      email: tokenRecord.user.email,
+      role: tokenRecord.user.role,
+    });
+
+    sendSuccess(
+      res,
+      {
+        accessToken: newAccessToken,
+        refreshToken: newRawRefresh,
+      },
+      'Token refreshed successfully'
+    );
   } catch (err) {
     next(err);
   }
@@ -131,9 +194,9 @@ export async function logout(
   try {
     const { refreshToken } = req.body as { refreshToken?: string };
     if (refreshToken) {
-      const hash = crypto.createHash('sha256').update(refreshToken).digest('hex');
+      const tokenHash = hashToken(refreshToken);
       await prisma.refreshToken.updateMany({
-        where: { tokenHash: hash, userId: req.user!.id },
+        where: { tokenHash, userId: req.user!.id },
         data: { revokedAt: new Date() },
       });
     }
@@ -200,7 +263,7 @@ export async function changePassword(
       data: { passwordHash: newHash },
     });
 
-    // Revoke all refresh tokens after password change
+    // Revoke all active refresh tokens for this user on password change
     await prisma.refreshToken.updateMany({
       where: { userId: user.id, revokedAt: null },
       data: { revokedAt: new Date() },

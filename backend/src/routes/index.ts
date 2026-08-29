@@ -16,25 +16,29 @@ import { prisma } from '../config/database';
 const router = Router();
 
 // ─── Public ────────────────────────────────────────────────────────────────
-router.get('/health', async (_req, res, next) => {
+router.get('/health', async (_req, res) => {
+  let dbStatus = 'connected';
+  let stats: Record<string, number> = {};
+
   try {
     const [groupCount, memberCount, userCount] = await Promise.all([
       prisma.vslaGroup.count(),
       prisma.member.count(),
       prisma.user.count(),
     ]);
-
-    res.json({
-      success: true,
-      message: 'KootaFlow VSLA API is running',
-      version: '1.0.0',
-      database: 'connected',
-      stats: { groups: groupCount, members: memberCount, users: userCount },
-      timestamp: new Date().toISOString(),
-    });
-  } catch (err) {
-    next(err);
+    stats = { groups: groupCount, members: memberCount, users: userCount };
+  } catch {
+    dbStatus = 'unavailable';
   }
+
+  res.status(200).json({
+    success: true,
+    message: 'KootaFlow VSLA API is running',
+    version: '1.0.0',
+    database: dbStatus,
+    stats,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 // ─── Auth (public + protected) ──────────────────────────────────────────────

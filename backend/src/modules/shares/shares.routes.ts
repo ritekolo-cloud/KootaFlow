@@ -5,7 +5,7 @@ import { getSharesForMember, purchaseShares, getSharesSummary } from './shares.c
 const router = Router();
 
 router.get('/summary', requireOfficer, getSharesSummary);
-router.get('/member/:memberId', requireOfficer, getSharesForMember);
+router.get('/member/:memberId', getSharesForMember); // Scoped to own member if role is MEMBER
 router.post('/', requireTreasurer, purchaseShares);
 
 export default router;

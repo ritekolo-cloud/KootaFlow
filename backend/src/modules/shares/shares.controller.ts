@@ -16,6 +16,12 @@ const purchaseSharesSchema = z.object({
 export async function getSharesForMember(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const memberId = parseInt(req.params.memberId, 10);
+
+    // Privacy Guard: If authenticated as MEMBER, can only view own shares
+    if (req.user?.role === 'MEMBER' && req.user.memberProfile?.id !== memberId) {
+      throw new AppError('Access denied: You can only view your own shareholdings', 403);
+    }
+
     const cycleId = req.query.cycleId ? parseInt(req.query.cycleId as string, 10) : undefined;
 
     const where: Record<string, unknown> = { memberId };

@@ -2,19 +2,27 @@ import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../config/jwt';
 import { prisma } from '../config/database';
 import { AppError } from './error.middleware';
-import { UserRole } from '@prisma/client';
+import { UserRole, MemberStatus } from '@prisma/client';
+
+export interface AuthenticatedUser {
+  id: number;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
+  memberProfile?: {
+    id: number;
+    memberNumber: string;
+    groupId: number;
+    status: MemberStatus;
+  } | null;
+}
 
 export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: number;
-    email: string;
-    role: UserRole;
-    isActive: boolean;
-  };
+  user?: AuthenticatedUser;
 }
 
 /**
- * Authenticate via Bearer JWT. Attaches req.user on success.
+ * Authenticate via Bearer JWT. Attaches req.user with role and memberProfile on success.
  */
 export async function authenticate(
   req: AuthenticatedRequest,
@@ -32,7 +40,20 @@ export async function authenticate(
 
     const user = await prisma.user.findUnique({
       where: { id: parseInt(payload.userId, 10) },
-      select: { id: true, email: true, role: true, isActive: true },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+        isActive: true,
+        memberProfile: {
+          select: {
+            id: true,
+            memberNumber: true,
+            groupId: true,
+            status: true,
+          },
+        },
+      },
     });
 
     if (!user || !user.isActive) {

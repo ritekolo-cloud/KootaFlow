@@ -17,11 +17,11 @@ import { generalLimiter } from './middleware/rateLimit.middleware';
 import { swaggerSpec } from './config/swagger';
 import apiRoutes from './routes';
 
-const app = express();
-const httpServer = createServer(app);
+export const app = express();
+export const httpServer = createServer(app);
 const corsOrigin = env.corsOrigins.includes('*') ? true : env.corsOrigins;
 
-// Socket.io for real-time notifications (optional)
+// Socket.io for real-time notifications
 export const io = new Server(httpServer, {
   cors: { origin: corsOrigin, credentials: true },
 });
@@ -40,10 +40,12 @@ app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan(env.isDev ? 'dev' : 'combined'));
 
-// Rate limiting globally
-app.use('/api', generalLimiter);
+if (env.nodeEnv !== 'test') {
+  app.use(morgan(env.isDev ? 'dev' : 'combined'));
+  // Rate limiting globally (bypassed in test environment)
+  app.use('/api', generalLimiter);
+}
 
 // Swagger Documentation
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
@@ -63,27 +65,40 @@ if (env.isProd) {
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
-async function startServer() {
+// Start server (only if not running inside test runner)
+export async function startServer() {
   await connectDatabase();
-  
-  httpServer.listen(env.port, () => {
-    logger.info(`🚀 Server running in ${env.nodeEnv} mode on port ${env.port}`);
-    logger.info(`📚 Swagger docs available at http://localhost:${env.port}/api/docs`);
+
+  return new Promise<void>((resolve) => {
+    httpServer.listen(env.port, () => {
+      logger.info(`🚀 Server running in ${env.nodeEnv} mode on port ${env.port}`);
+      logger.info(`📚 Swagger docs available at http://localhost:${env.port}/api/docs`);
+      resolve();
+    });
   });
 }
 
 // Graceful shutdown
-function gracefulShutdown() {
+export async function gracefulShutdown() {
   logger.info('Shutting down server...');
-  httpServer.close(async () => {
-    await disconnectDatabase();
-    logger.info('Server safely shut down');
-    process.exit(0);
+  return new Promise<void>((resolve) => {
+    httpServer.close(async () => {
+      await disconnectDatabase();
+      logger.info('Server safely shut down');
+      resolve();
+    });
   });
 }
 
-process.on('SIGTERM', gracefulShutdown);
-process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', () => {
+  gracefulShutdown().then(() => process.exit(0));
+});
+process.on('SIGINT', () => {
+  gracefulShutdown().then(() => process.exit(0));
+});
 
-startServer();
+if (process.env.NODE_ENV !== 'test' && require.main === module) {
+  startServer();
+}
+
+export default app;

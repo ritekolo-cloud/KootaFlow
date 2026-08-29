@@ -25,13 +25,21 @@ export async function listLoans(req: AuthenticatedRequest, res: Response, next: 
   try {
     const { page, limit, skip } = parsePagination(req.query as Record<string, unknown>);
     const status = req.query.status as LoanStatus | undefined;
-    const memberId = req.query.memberId ? parseInt(req.query.memberId as string, 10) : undefined;
+    const requestedMemberId = req.query.memberId ? parseInt(req.query.memberId as string, 10) : undefined;
     const groupId = req.query.groupId ? parseInt(req.query.groupId as string, 10) : undefined;
 
     const where: Record<string, unknown> = {};
     if (status) where.status = status;
-    if (memberId) where.memberId = memberId;
-    if (groupId) where.member = { groupId };
+
+    // Strict Privacy Guard: If authenticated as MEMBER, only allow viewing their own loans
+    if (req.user?.role === 'MEMBER') {
+      const ownMemberId = req.user.memberProfile?.id;
+      if (!ownMemberId) throw new AppError('Member profile not linked to user', 400);
+      where.memberId = ownMemberId;
+    } else {
+      if (requestedMemberId) where.memberId = requestedMemberId;
+      if (groupId) where.member = { groupId };
+    }
 
     const [loans, total] = await Promise.all([
       prisma.loan.findMany({
@@ -67,6 +75,12 @@ export async function getLoan(req: AuthenticatedRequest, res: Response, next: Ne
       },
     });
     if (!loan) throw new AppError('Loan not found', 404);
+
+    // Strict Privacy Guard: If authenticated as MEMBER, verify loan belongs to them
+    if (req.user?.role === 'MEMBER' && req.user.memberProfile?.id !== loan.memberId) {
+      throw new AppError('Access denied: You can only view your own loan records', 403);
+    }
+
     sendSuccess(res, loan, 'Loan retrieved');
   } catch (err) {
     next(err);
@@ -76,6 +90,14 @@ export async function getLoan(req: AuthenticatedRequest, res: Response, next: Ne
 export async function applyLoan(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const data = applyLoanSchema.parse(req.body);
+
+    // Strict Privacy Guard: If authenticated as MEMBER, force their own memberId
+    if (req.user?.role === 'MEMBER') {
+      const ownMemberId = req.user.memberProfile?.id;
+      if (!ownMemberId || data.memberId !== ownMemberId) {
+        throw new AppError('Access denied: You can only apply for a loan for yourself', 403);
+      }
+    }
 
     const member = await prisma.member.findUnique({
       where: { id: data.memberId },
@@ -122,7 +144,7 @@ export async function applyLoan(req: AuthenticatedRequest, res: Response, next: 
       include: { member: { select: { id: true, firstName: true, lastName: true } } },
     });
 
-    // Notify admin/chairperson
+    // Notify officer/admin
     await prisma.notification.create({
       data: {
         userId: req.user!.id,
@@ -195,7 +217,7 @@ export async function approveLoan(req: AuthenticatedRequest, res: Response, next
       },
     });
 
-    // Notify member
+    // Notify member if linked
     if (loan.member.userId) {
       await prisma.notification.create({
         data: {
@@ -281,7 +303,7 @@ export async function repayLoan(req: AuthenticatedRequest, res: Response, next: 
     const totalRepayable = Number(loan.totalRepayable);
     const interestAmount = Number(loan.interestAmount);
     const principalAmount = Number(loan.principalAmount);
-    const interestFraction = interestAmount / totalRepayable;
+    const interestFraction = totalRepayable > 0 ? interestAmount / totalRepayable : 0;
     const interestPortion = Math.round(amountPaid * interestFraction * 100) / 100;
     const principalPortion = amountPaid - interestPortion;
     const newBalance = Math.round((balanceRemaining - amountPaid) * 100) / 100;
@@ -342,6 +364,11 @@ export async function getLoanRepayments(req: AuthenticatedRequest, res: Response
     const id = parseInt(req.params.id, 10);
     const loan = await prisma.loan.findUnique({ where: { id } });
     if (!loan) throw new AppError('Loan not found', 404);
+
+    // Strict Privacy Guard: If authenticated as MEMBER, verify loan belongs to them
+    if (req.user?.role === 'MEMBER' && req.user.memberProfile?.id !== loan.memberId) {
+      throw new AppError('Access denied: You can only view your own loan repayments', 403);
+    }
 
     const repayments = await prisma.loanRepayment.findMany({
       where: { loanId: id },

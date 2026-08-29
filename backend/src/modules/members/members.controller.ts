@@ -68,6 +68,12 @@ export async function listMembers(req: AuthenticatedRequest, res: Response, next
 export async function getMember(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = parseInt(req.params.id, 10);
+
+    // Strict Privacy Guard: If authenticated as MEMBER, verify viewing own profile
+    if (req.user?.role === 'MEMBER' && req.user.memberProfile?.id !== id) {
+      throw new AppError('Access denied: You can only view your own member profile', 403);
+    }
+
     const member = await prisma.member.findUnique({
       where: { id },
       include: {
@@ -148,6 +154,12 @@ export async function updateMember(req: AuthenticatedRequest, res: Response, nex
 export async function getMemberLedger(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
   try {
     const id = parseInt(req.params.id, 10);
+
+    // Strict Privacy Guard: If authenticated as MEMBER, verify viewing own ledger
+    if (req.user?.role === 'MEMBER' && req.user.memberProfile?.id !== id) {
+      throw new AppError('Access denied: You can only view your own ledger', 403);
+    }
+
     const { page, limit, skip } = parsePagination(req.query as Record<string, unknown>);
 
     const member = await prisma.member.findUnique({ where: { id } });
