@@ -13,6 +13,8 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: DIRECT_URL
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: JWT_REFRESH_SECRET
@@ -21,3 +23,7 @@ services:
         value: https://kootaflow.onrender.com
       - key: LOG_LEVEL
         value: info
+      - key: ADMIN_EMAIL
+        value: admin@kootaflow.com
+      - key: ADMIN_PASSWORD
+        generateValue: true
