@@ -18,7 +18,7 @@
     "start": "npm run start --workspace=@kootaflow/backend",
     "postinstall": "node scripts/postinstall.js",
     "db:generate": "npm run prisma:generate --workspace=@kootaflow/backend",
-    "db:migrate": "npm run prisma:migrate:deploy --workspace=@kootaflow/backend",
+    "db:migrate": "node scripts/migrate.js",
     "db:migrate:dev": "npm run prisma:migrate:dev --workspace=@kootaflow/backend",
     "db:seed": "npm run prisma:seed --workspace=@kootaflow/backend",
     "setup": "npm run db:generate && npm run db:migrate && npm run db:seed"

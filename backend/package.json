@@ -8,8 +8,8 @@
     "build": "prisma generate && tsc",
     "start": "node -r module-alias/register dist/server.js",
     "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate deploy",
-    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:migrate": "node ../scripts/migrate.js",
+    "prisma:migrate:deploy": "node ../scripts/migrate.js",
     "prisma:migrate:dev": "prisma migrate dev",
     "prisma:seed": "ts-node prisma/seed.ts",
     "test": "jest --coverage --forceExit --detectOpenHandles"
