@@ -37,6 +37,7 @@ services:
     buildCommand: npm ci --include=dev && npm run build --workspace=@kootaflow/frontend
     staticPublishPath: frontend/dist
     autoDeploy: true
+    # SPA routing: rewrite all paths to /index.html for client-side routing
     routes:
       - type: rewrite
         source: /*
@@ -44,4 +45,3 @@ services:
     envVars:
       - key: VITE_API_URL
         value: https://kootaflow.onrender.com/api
-
