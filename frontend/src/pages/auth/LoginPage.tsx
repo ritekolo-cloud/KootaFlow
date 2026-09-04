@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Shield, Lock, Mail, ArrowRight, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuthStore } from '../../store/auth.store';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/FormControls';
@@ -33,13 +33,6 @@ export const LoginPage: React.FC = () => {
     } catch (err: any) {
       // error is handled in store
     }
-  };
-
-  const handleDemoFill = (demoEmail: string) => {
-    setEmail(demoEmail);
-    setPassword('Admin@123456');
-    setLocalError(null);
-    clearError();
   };
 
   return (
@@ -81,7 +74,7 @@ export const LoginPage: React.FC = () => {
             <Input
               label="Email Address"
               type="email"
-              placeholder="you@example.com"
+              placeholder="name@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -122,42 +115,6 @@ export const LoginPage: React.FC = () => {
               Sign In
             </Button>
           </form>
-
-          {/* Demo Accounts Quick Picker */}
-          <div className="mt-6 pt-5 border-t border-slate-200">
-            <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider text-center mb-3">
-              Quick Demo Accounts
-            </p>
-            <div className="grid grid-cols-3 gap-2 text-xs">
-              <button
-                type="button"
-                onClick={() => handleDemoFill('admin@kootaflow.com')}
-                className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
-              >
-                <div className="font-semibold text-[#0B1F3A]">Admin</div>
-                <div className="text-[10px] text-slate-500 truncate">admin@kootaflow.com</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('treasurer@kootaflow.test')}
-                className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
-              >
-                <div className="font-semibold text-[#0B1F3A]">Treasurer</div>
-                <div className="text-[10px] text-slate-500 truncate">treasurer@kootaflow.test</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoFill('jabari.test@kootaflow.test')}
-                className="p-2 rounded border border-slate-200 bg-slate-50 hover:bg-slate-100 text-left transition-colors"
-              >
-                <div className="font-semibold text-[#0B1F3A]">Member</div>
-                <div className="text-[10px] text-slate-500 truncate">jabari.test@kootaflow.test</div>
-              </button>
-            </div>
-            <p className="text-[10px] text-slate-400 text-center mt-2.5">
-              Default password: <span className="font-mono text-slate-600">Admin@123456</span>
-            </p>
-          </div>
         </div>
 
         <div className="text-center mt-6 text-xs text-slate-400">
