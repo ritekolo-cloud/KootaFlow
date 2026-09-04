@@ -17,6 +17,7 @@ import { errorHandler, notFound } from './middleware/error.middleware';
 import { generalLimiter } from './middleware/rateLimit.middleware';
 import { swaggerSpec } from './config/swagger';
 import apiRoutes from './routes';
+import { ensureAdminExists } from './utils/ensureAdmin';
 
 export const app = express();
 app.set('trust proxy', 1);
@@ -122,6 +123,8 @@ app.use(errorHandler);
 // Start server (only if not running inside test runner)
 export async function startServer() {
   await connectDatabase();
+  // Ensure admin user exists on every startup (idempotent)
+  await ensureAdminExists();
 
   return new Promise<void>((resolve) => {
     httpServer.listen(env.port, '0.0.0.0', () => {
