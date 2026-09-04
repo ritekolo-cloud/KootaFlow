@@ -50,6 +50,21 @@ function getEffectiveDirectUrl(): string | undefined {
   return isProductionEnv ? productionDirectUrl : undefined;
 }
 
+// ── CRITICAL: Patch process.env so Prisma reads the correct DB URL ────────────
+// Prisma uses env("DATABASE_URL") directly from process.env, bypassing our
+// getEffectiveDatabaseUrl() logic. We must mutate process.env here, before
+// any Prisma client is instantiated, to ensure it connects to Neon.
+const _effectiveDbUrl = getEffectiveDatabaseUrl();
+const _effectiveDirectUrl = getEffectiveDirectUrl();
+if (process.env.DATABASE_URL !== _effectiveDbUrl) {
+  console.log('[env] Overriding process.env.DATABASE_URL to Neon (was: ' + (process.env.DATABASE_URL?.substring(0, 40) || 'unset') + '...');
+  process.env.DATABASE_URL = _effectiveDbUrl;
+}
+if (_effectiveDirectUrl && process.env.DIRECT_URL !== _effectiveDirectUrl) {
+  process.env.DIRECT_URL = _effectiveDirectUrl;
+}
+// ──────────────────────────────────────────────────────────────────────────────
+
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
