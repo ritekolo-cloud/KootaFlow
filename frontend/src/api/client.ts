@@ -1,6 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+let rawBase = (import.meta.env.VITE_API_URL || '/api').trim();
+// Ensure base URL always ends with /api if it's an absolute URL and doesn't have it
+if (rawBase.startsWith('http') && !rawBase.endsWith('/api') && !rawBase.endsWith('/api/')) {
+  rawBase = rawBase.replace(/\/+$/, '') + '/api';
+}
+export const BASE_URL = rawBase;
 
 export const apiClient = axios.create({
   baseURL: BASE_URL,
