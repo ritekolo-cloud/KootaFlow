@@ -12,6 +12,7 @@ import dashboardRoutes from '../modules/dashboard/dashboard.routes';
 import notificationRoutes from '../modules/notifications/notifications.routes';
 import usersRoutes from '../modules/users/users.routes';
 import { prisma } from '../config/database';
+import { env } from '../config/env';
 
 const router = Router();
 
@@ -20,6 +21,13 @@ router.get('/health', async (_req, res) => {
   let dbStatus = 'connected';
   let dbError: string | undefined;
   let stats: Record<string, number> = {};
+
+  // Expose which DB host the server is connecting to (hostname only, no credentials)
+  let dbHost = 'unknown';
+  try {
+    const url = new URL(env.databaseUrl);
+    dbHost = url.hostname;
+  } catch (_) {}
 
   let timer: NodeJS.Timeout | undefined;
   try {
@@ -45,6 +53,7 @@ router.get('/health', async (_req, res) => {
     message: 'KootaFlow VSLA API is running',
     version: '1.0.0',
     database: dbStatus,
+    dbHost,
     ...(dbError ? { dbError } : {}),
     stats,
     timestamp: new Date().toISOString(),
