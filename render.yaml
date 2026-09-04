@@ -22,7 +22,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://kootaflow-client-nz3v.onrender.com,https://kootaflow-client.onrender.com,https://kootaflow.onrender.com,http://localhost:5173
+        value: https://kootaflow-66mf.onrender.com,https://kootaflow-client-nz3v.onrender.com,https://kootaflow-client.onrender.com,https://kootaflow-production-api.onrender.com,http://localhost:5173
       - key: LOG_LEVEL
         value: info
       - key: ADMIN_EMAIL
@@ -44,4 +44,4 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://kootaflow.onrender.com/api
+        value: https://kootaflow-production-api.onrender.com/api

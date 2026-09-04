@@ -15,7 +15,7 @@ const options: swaggerJSDoc.Options = {
         description: 'Development server',
       },
       {
-        url: 'https://kootaflow.onrender.com/api',
+        url: 'https://kootaflow-production-api.onrender.com/api',
         description: 'Production server',
       },
     ],

@@ -1,8 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 
-let rawBase = import.meta.env.PROD
-  ? 'https://kootaflow.onrender.com/api'
-  : (import.meta.env.VITE_API_URL || '/api').trim();
+const configuredUrl = (import.meta.env.VITE_API_URL || '').trim();
+const fallbackProdUrl = 'https://kootaflow-production-api.onrender.com/api';
+
+let rawBase = configuredUrl || (import.meta.env.PROD ? fallbackProdUrl : '/api');
 
 // Ensure base URL always ends with /api if it's an absolute URL and doesn't have it
 if (rawBase.startsWith('http') && !rawBase.endsWith('/api') && !rawBase.endsWith('/api/')) {

@@ -24,9 +24,10 @@ app.set('trust proxy', 1);
 export const httpServer = createServer(app);
 const allowedOrigins = new Set([
   ...env.corsOrigins,
+  'https://kootaflow-66mf.onrender.com',
   'https://kootaflow-client-nz3v.onrender.com',
   'https://kootaflow-client.onrender.com',
-  'https://kootaflow.onrender.com',
+  'https://kootaflow-production-api.onrender.com',
   'http://localhost:5173',
   'http://localhost:3000',
 ]);
