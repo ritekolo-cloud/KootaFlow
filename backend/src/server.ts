@@ -70,7 +70,7 @@ export async function startServer() {
   await connectDatabase();
 
   return new Promise<void>((resolve) => {
-    httpServer.listen(env.port, () => {
+    httpServer.listen(env.port, '0.0.0.0', () => {
       logger.info(`🚀 Server running in ${env.nodeEnv} mode on port ${env.port}`);
       logger.info(`📚 Swagger docs available at http://localhost:${env.port}/api/docs`);
       resolve();
