@@ -8,6 +8,7 @@ import swaggerUi from 'swagger-ui-express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import path from 'path';
+import fs from 'fs';
 
 import { env } from './config/env';
 import { connectDatabase, disconnectDatabase } from './config/database';
@@ -18,6 +19,8 @@ import { swaggerSpec } from './config/swagger';
 import apiRoutes from './routes';
 
 export const app = express();
+app.set('trust proxy', 1);
+
 export const httpServer = createServer(app);
 const allowedOrigins = new Set([
   ...env.corsOrigins,
@@ -40,7 +43,7 @@ const corsOptions: cors.CorsOptions = {
     if (isAllowedOrigin(origin)) {
       callback(null, true);
     } else {
-      callback(new Error(`Not allowed by CORS: ${origin}`));
+      callback(null, false);
     }
   },
   credentials: true,
@@ -70,6 +73,7 @@ io.on('connection', (socket) => {
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json());
@@ -89,10 +93,21 @@ app.use('/api', apiRoutes);
 
 if (env.isProd) {
   const frontendDist = path.resolve(__dirname, '../../frontend/dist');
-  app.use(express.static(frontendDist));
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
-  });
+  if (fs.existsSync(path.join(frontendDist, 'index.html'))) {
+    app.use(express.static(frontendDist));
+    app.get('*', (_req, res) => {
+      res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+  } else {
+    app.get('/', (_req, res) => {
+      res.status(200).json({
+        success: true,
+        message: 'KootaFlow VSLA API is running',
+        docs: '/api/docs',
+        health: '/api/health',
+      });
+    });
+  }
 }
 
 // 404 & Global Error Handling
