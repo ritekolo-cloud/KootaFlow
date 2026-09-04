@@ -163,7 +163,7 @@ export const AppLayout: React.FC = () => {
               {/* Group/Cycle indicator */}
               <div className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 px-2.5 py-1 rounded-md text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span className="font-semibold text-slate-700">KF-ALPHA-01</span>
+                <span className="font-semibold text-slate-700">Katabi Town Council</span>
                 <span className="text-slate-400">•</span>
                 <span className="text-slate-600">Cycle #1 Active</span>
               </div>

@@ -63,12 +63,12 @@ async function main() {
     },
   });
 
-  // 3. Create or Update Demo VSLA Group
+  // 3. Create or Update VSLA Group (Katabi Town Council)
   const group = await prisma.vslaGroup.upsert({
-    where: { code: 'KF-ALPHA-01' },
+    where: { code: 'KATABI-01' },
     update: {
-      name: 'KootaFlow Alpha Savings Group',
-      description: 'Demonstration Village Savings and Loan Association Group',
+      name: 'Katabi Town Council',
+      description: 'Katabi Town Council Village Savings & Loan Association',
       meetingFrequency: MeetingFrequency.WEEKLY,
       sharePrice: 2000,
       maxSharesPerMember: 5,
@@ -77,9 +77,9 @@ async function main() {
       welfareContribution: 500,
     },
     create: {
-      name: 'KootaFlow Alpha Savings Group',
-      code: 'KF-ALPHA-01',
-      description: 'Demonstration Village Savings and Loan Association Group',
+      name: 'Katabi Town Council',
+      code: 'KATABI-01',
+      description: 'Katabi Town Council Village Savings & Loan Association',
       meetingFrequency: MeetingFrequency.WEEKLY,
       sharePrice: 2000,
       maxSharesPerMember: 5,
@@ -88,7 +88,7 @@ async function main() {
       welfareContribution: 500,
     },
   });
-  console.log(`✅ Demo VSLA Group ready: ${group.name} (${group.code})`);
+  console.log(`✅ VSLA Group ready: ${group.name} (${group.code})`);
 
   // 4. Create or Update Active Operational Cycle (Cycle 1)
   const cycle = await prisma.cycle.upsert({
