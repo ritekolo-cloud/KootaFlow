@@ -8,11 +8,28 @@ try {
   dotenv.config({ path: path.resolve(__dirname, '../backend/.env') });
 } catch (_) {}
 
-// Fallback DIRECT_URL to DATABASE_URL if unset (strip pooler suffix for direct connection)
-if (!process.env.DIRECT_URL && process.env.DATABASE_URL) {
-  process.env.DIRECT_URL = process.env.DATABASE_URL.replace('-pooler', '');
-  console.log('DIRECT_URL was not set; derived from DATABASE_URL for Prisma.');
+// ── Force Neon in production if Render injected a dpg-* internal Postgres URL ──
+const NEON_DATABASE_URL =
+  'postgresql://neondb_owner:npg_uDQg2k6JHARv@ep-weathered-wind-ab7o9vmz-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&connect_timeout=20';
+const NEON_DIRECT_URL =
+  'postgresql://neondb_owner:npg_uDQg2k6JHARv@ep-weathered-wind-ab7o9vmz.eu-west-2.aws.neon.tech/neondb?sslmode=require&connect_timeout=20';
+
+const currentDbUrl = process.env.DATABASE_URL || '';
+const isRenderInternal = /dpg-[a-z0-9]/.test(currentDbUrl) || currentDbUrl.includes('localhost');
+
+if (isRenderInternal || !currentDbUrl) {
+  console.log('[migrate] Detected Render-internal/missing DATABASE_URL; switching to Neon production DB.');
+  process.env.DATABASE_URL = NEON_DATABASE_URL;
+  process.env.DIRECT_URL = NEON_DIRECT_URL;
+} else {
+  // Fallback DIRECT_URL to non-pooler variant of DATABASE_URL if unset
+  if (!process.env.DIRECT_URL) {
+    process.env.DIRECT_URL = currentDbUrl.replace('-pooler', '');
+    console.log('[migrate] DIRECT_URL derived from DATABASE_URL.');
+  }
 }
+
+console.log('[migrate] Using DB host:', (() => { try { return new URL(process.env.DATABASE_URL).hostname; } catch(_) { return 'unknown'; } })());
 
 const backendDir = path.resolve(__dirname, '../backend');
 

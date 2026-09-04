@@ -25,7 +25,13 @@ const isProductionEnv = process.env.NODE_ENV === 'production';
 
 function getEffectiveDatabaseUrl(): string {
   const envUrl = process.env.DATABASE_URL?.trim();
-  if (envUrl && (!isProductionEnv || !envUrl.includes('localhost'))) {
+  if (envUrl) {
+    // If in production and the URL points to a Render-internal Postgres (dpg-* host)
+    // or localhost, override with our Neon production URL
+    if (isProductionEnv && (envUrl.includes('localhost') || /dpg-[a-z0-9]/.test(envUrl))) {
+      console.log('[env] DATABASE_URL is a Render-internal/local DB; using Neon production URL instead.');
+      return productionDatabaseUrl;
+    }
     return envUrl;
   }
   return isProductionEnv ? productionDatabaseUrl : developmentDatabaseUrl;
@@ -33,13 +39,17 @@ function getEffectiveDatabaseUrl(): string {
 
 function getEffectiveDirectUrl(): string | undefined {
   const envDirect = process.env.DIRECT_URL?.trim();
-  if (envDirect) return envDirect;
+  // Ignore DIRECT_URL if it's a Render-internal DB (dpg-* host) — use Neon instead
+  if (envDirect && !(isProductionEnv && /dpg-[a-z0-9]/.test(envDirect))) {
+    return envDirect;
+  }
   const dbUrl = getEffectiveDatabaseUrl();
   if (dbUrl.includes('-pooler')) {
     return dbUrl.replace('-pooler', '');
   }
   return isProductionEnv ? productionDirectUrl : undefined;
 }
+
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
