@@ -4,6 +4,7 @@ build/
 .env
 .env.local
 .env.production
+!frontend/.env.production
 coverage/
 .vscode/
 .DS_Store

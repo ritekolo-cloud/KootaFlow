@@ -48,7 +48,25 @@ export function errorHandler(
       res.status(404).json({ success: false, message: 'Record not found' });
       return;
     }
-    res.status(400).json({ success: false, message: 'Database error' });
+    res.status(400).json({
+      success: false,
+      message: 'Database error',
+      ...(process.env.NODE_ENV !== 'production'
+        ? { code: err.code, detail: err.message }
+        : {}),
+    });
+    return;
+  }
+
+  // Prisma initialization / connection error
+  if (err instanceof Prisma.PrismaClientInitializationError) {
+    res.status(500).json({
+      success: false,
+      message: 'Database connection error',
+      ...(process.env.NODE_ENV !== 'production'
+        ? { code: err.errorCode, detail: err.message }
+        : {}),
+    });
     return;
   }
 

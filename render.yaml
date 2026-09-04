@@ -1,7 +1,7 @@
 services:
   # ─── 1. Backend Web Service (Node.js REST API) ──────────────────────
   - type: web
-    name: kootaflow
+    name: kootaflow-production-api
     runtime: node
     plan: free
     region: oregon
@@ -22,7 +22,7 @@ services:
       - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: CORS_ORIGIN
-        value: https://kootaflow-66mf.onrender.com,https://kootaflow-client-nz3v.onrender.com,https://kootaflow-client.onrender.com,https://kootaflow-production-api.onrender.com,http://localhost:5173
+        value: https://kootaflow-66mf.onrender.com
       - key: LOG_LEVEL
         value: info
       - key: ADMIN_EMAIL
@@ -32,7 +32,7 @@ services:
 
   # ─── 2. Frontend Static Site (React/Vite SPA) ────────────────────────
   - type: web
-    name: kootaflow-client
+    name: kootaflow-66mf
     runtime: static
     buildCommand: npm ci --include=dev && npm run build --workspace=@kootaflow/frontend
     staticPublishPath: frontend/dist

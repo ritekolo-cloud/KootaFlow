@@ -62,7 +62,7 @@ jest.mock('../src/config/database', () => ({
 }));
 
 import request from 'supertest';
-import { app } from '../src/server';
+import { app, isAllowedOrigin } from '../src/server';
 import { prisma } from '../src/config/database';
 import { signAccessToken } from '../src/config/jwt';
 import { UserRole } from '@prisma/client';
@@ -133,6 +133,21 @@ describe('GET /api/health', () => {
     expect(res.text.toLowerCase()).not.toContain('morija');
     expect(res.text.toLowerCase()).not.toContain('cantiques');
     expect(res.text.toLowerCase()).not.toContain('hymn');
+  });
+});
+
+describe('CORS origin policy', () => {
+  const renderOrigin = (serviceName: string) => `https://${serviceName}.onrender.com`;
+
+  it('allows the production frontend origin', () => {
+    expect(isAllowedOrigin('https://kootaflow-66mf.onrender.com')).toBe(true);
+  });
+
+  it('blocks obsolete Render service origins', () => {
+    expect(isAllowedOrigin(renderOrigin('kootaflow'))).toBe(false);
+    expect(isAllowedOrigin(renderOrigin('kootaflow-server'))).toBe(false);
+    expect(isAllowedOrigin(renderOrigin('kootaflow-client'))).toBe(false);
+    expect(isAllowedOrigin(renderOrigin('kootaflow-client-nz3v'))).toBe(false);
   });
 });
 
