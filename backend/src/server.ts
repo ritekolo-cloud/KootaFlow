@@ -19,11 +19,45 @@ import apiRoutes from './routes';
 
 export const app = express();
 export const httpServer = createServer(app);
-const corsOrigin = env.corsOrigins.includes('*') ? true : env.corsOrigins;
+const allowedOrigins = new Set([
+  ...env.corsOrigins,
+  'https://kootaflow-client-nz3v.onrender.com',
+  'https://kootaflow-client.onrender.com',
+  'https://kootaflow.onrender.com',
+  'http://localhost:5173',
+  'http://localhost:3000',
+]);
+
+export function isAllowedOrigin(origin?: string): boolean {
+  if (!origin) return true;
+  if (env.corsOrigins.includes('*') || allowedOrigins.has(origin)) return true;
+  if (origin.endsWith('.onrender.com') || origin.startsWith('http://localhost:')) return true;
+  return false;
+}
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`Not allowed by CORS: ${origin}`));
+    }
+  },
+  credentials: true,
+};
 
 // Socket.io for real-time notifications
 export const io = new Server(httpServer, {
-  cors: { origin: corsOrigin, credentials: true },
+  cors: {
+    origin: (origin, callback) => {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+  },
 });
 
 io.on('connection', (socket) => {
@@ -35,7 +69,7 @@ io.on('connection', (socket) => {
 
 // Middleware
 app.use(helmet({ contentSecurityPolicy: false }));
-app.use(cors({ origin: corsOrigin, credentials: true }));
+app.use(cors(corsOptions));
 app.use(compression());
 app.use(cookieParser());
 app.use(express.json());

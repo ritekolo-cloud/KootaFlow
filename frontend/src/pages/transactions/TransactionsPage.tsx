@@ -61,7 +61,7 @@ export const TransactionsPage: React.FC = () => {
   }, [page, typeFilter, user]);
 
   const formatCurrency = (amount: number | string | undefined) => {
-    return `${Number(amount || 0).toLocaleString()} RWF`;
+    return `${Number(amount || 0).toLocaleString()} UGX`;
   };
 
   const isCreditType = (type: TransactionType) => {
@@ -144,7 +144,7 @@ export const TransactionsPage: React.FC = () => {
                     {!isMember() && <th className="px-4 py-3">Member</th>}
                     <th className="px-4 py-3">Transaction Type</th>
                     <th className="px-4 py-3">Description</th>
-                    <th className="px-4 py-3 text-right">Amount (RWF)</th>
+                    <th className="px-4 py-3 text-right">Amount (UGX)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">

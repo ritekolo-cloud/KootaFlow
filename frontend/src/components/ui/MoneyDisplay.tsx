@@ -11,7 +11,7 @@ interface MoneyDisplayProps {
 
 export const MoneyDisplay: React.FC<MoneyDisplayProps> = ({
   amount,
-  currency = 'RWF',
+  currency = 'UGX',
   type = 'neutral',
   size = 'md',
   className = '',

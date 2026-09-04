@@ -97,7 +97,7 @@ export const SharesPage: React.FC = () => {
   }, [user]);
 
   const formatCurrency = (val: number | string | undefined) => {
-    return `${Number(val || 0).toLocaleString()} RWF`;
+    return `${Number(val || 0).toLocaleString()} UGX`;
   };
 
   const sharePrice = Number(group?.sharePrice || 2000);
@@ -341,48 +341,56 @@ export const SharesPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredMembers.map((m) => {
-                const memberSharesCount = (m.shares || []).reduce((sum, s) => sum + s.quantity, 0);
-                const memberSharesValue = memberSharesCount * sharePrice;
-                const isMaxed = memberSharesCount >= maxSharesPerMember;
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td colSpan={isTreasurer() ? 7 : 6} className="px-4 py-8 text-center text-xs text-slate-500">
+                    No registered members found. Add members in the Members module.
+                  </td>
+                </tr>
+              ) : (
+                filteredMembers.map((m) => {
+                  const memberSharesCount = (m.shares || []).reduce((sum, s) => sum + s.quantity, 0);
+                  const memberSharesValue = memberSharesCount * sharePrice;
+                  const isMaxed = memberSharesCount >= maxSharesPerMember;
 
-                return (
-                  <tr key={m.id} className="table-row">
-                    <td className="px-4 py-3 font-semibold text-slate-900">{m.memberNumber}</td>
-                    <td className="px-4 py-3 font-medium text-[#0B1F3A]">
-                      {m.firstName} {m.lastName}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{m.phone || '—'}</td>
-                    <td className="px-4 py-3 text-center font-bold text-slate-900">
-                      {memberSharesCount} shares
-                    </td>
-                    <td className="px-4 py-3 text-center text-slate-500">
-                      {isMaxed ? (
-                        <span className="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-semibold">
-                          Max Reached
-                        </span>
-                      ) : (
-                        `${memberSharesCount}/${maxSharesPerMember}`
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold text-[#0B1F3A]">
-                      {formatCurrency(memberSharesValue)}
-                    </td>
-                    {isTreasurer() && (
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openPurchaseModal(m.id)}
-                          disabled={isMaxed}
-                        >
-                          + Purchase
-                        </Button>
+                  return (
+                    <tr key={m.id} className="table-row">
+                      <td className="px-4 py-3 font-semibold text-slate-900">{m.memberNumber}</td>
+                      <td className="px-4 py-3 font-medium text-[#0B1F3A]">
+                        {m.firstName} {m.lastName}
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+                      <td className="px-4 py-3 text-slate-600">{m.phone || '—'}</td>
+                      <td className="px-4 py-3 text-center font-bold text-slate-900">
+                        {memberSharesCount} shares
+                      </td>
+                      <td className="px-4 py-3 text-center text-slate-500">
+                        {isMaxed ? (
+                          <span className="text-[10px] bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-semibold">
+                            Max Reached
+                          </span>
+                        ) : (
+                          `${memberSharesCount}/${maxSharesPerMember}`
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-[#0B1F3A]">
+                        {formatCurrency(memberSharesValue)}
+                      </td>
+                      {isTreasurer() && (
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openPurchaseModal(m.id)}
+                            disabled={isMaxed}
+                          >
+                            + Purchase
+                          </Button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>

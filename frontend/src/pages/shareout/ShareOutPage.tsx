@@ -113,7 +113,7 @@ export const ShareOutPage: React.FC = () => {
   };
 
   const formatCurrency = (val: number | string | undefined) => {
-    return `${Number(val || 0).toLocaleString()} RWF`;
+    return `${Number(val || 0).toLocaleString()} UGX`;
   };
 
   if (isLoading && !preview) {
@@ -187,25 +187,32 @@ export const ShareOutPage: React.FC = () => {
           </p>
 
           <form onSubmit={handleSelectCycle} className="space-y-4 pt-2">
-            <Select
-              label="Operational Cycle"
-              value={selectedCycleId}
-              onChange={(e) => setSelectedCycleId(parseInt(e.target.value, 10))}
-              required
-            >
-              {cycles.map((c) => (
-                <option key={c.id} value={c.id}>
-                  Cycle #{c.cycleNumber} — Status: {c.status} (Started:{' '}
-                  {new Date(c.startDate).toLocaleDateString()})
-                </option>
-              ))}
-            </Select>
+            {cycles.length === 0 ? (
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded text-center text-xs text-slate-500">
+                No operational cycles available yet. Please create a VSLA group and start a cycle.
+              </div>
+            ) : (
+              <Select
+                label="Operational Cycle"
+                value={selectedCycleId}
+                onChange={(e) => setSelectedCycleId(parseInt(e.target.value, 10))}
+                required
+              >
+                {cycles.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Cycle #{c.cycleNumber} — Status: {c.status} (Started:{' '}
+                    {new Date(c.startDate).toLocaleDateString()})
+                  </option>
+                ))}
+              </Select>
+            )}
 
             <Button
               type="submit"
               variant="primary"
               size="md"
               className="w-full"
+              disabled={cycles.length === 0}
               rightIcon={<ArrowRight size={16} />}
             >
               Calculate Cycle Valuation Preview
@@ -286,7 +293,7 @@ export const ShareOutPage: React.FC = () => {
                         {formatCurrency(mb.grossAmount)}
                       </td>
                       <td className="px-4 py-3 text-right font-semibold text-red-600">
-                        {mb.loanDeductions > 0 ? `-${formatCurrency(mb.loanDeductions)}` : '0 RWF'}
+                        {mb.loanDeductions > 0 ? `-${formatCurrency(mb.loanDeductions)}` : '0 UGX'}
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-emerald-700 text-sm">
                         {formatCurrency(mb.netPayout)}

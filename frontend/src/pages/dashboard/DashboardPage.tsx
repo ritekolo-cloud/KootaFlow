@@ -77,7 +77,7 @@ export const DashboardPage: React.FC = () => {
 
   const formatCurrency = (amount: number | string | undefined) => {
     const num = Number(amount || 0);
-    return `${num.toLocaleString()} RWF`;
+    return `${num.toLocaleString()} UGX`;
   };
 
   if (isLoading) {
@@ -139,7 +139,7 @@ export const DashboardPage: React.FC = () => {
           />
           <StatCard
             title="My Active Loan"
-            value={activeLoan ? formatCurrency(activeLoan.balanceRemaining) : '0 RWF'}
+            value={activeLoan ? formatCurrency(activeLoan.balanceRemaining) : '0 UGX'}
             subtitle={activeLoan ? `Status: ${activeLoan.status}` : 'No active loan'}
             icon={<Landmark size={20} />}
             accent={activeLoan ? 'amber' : 'slate'}

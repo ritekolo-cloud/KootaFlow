@@ -51,7 +51,7 @@ export const MemberDetailPage: React.FC = () => {
   }, [id]);
 
   const formatCurrency = (amount: number | string | undefined) => {
-    return `${Number(amount || 0).toLocaleString()} RWF`;
+    return `${Number(amount || 0).toLocaleString()} UGX`;
   };
 
   if (isLoading) {

@@ -82,7 +82,7 @@ export const SavingsPage: React.FC = () => {
   }, [user]);
 
   const formatCurrency = (val: number | string | undefined) => {
-    return `${Number(val || 0).toLocaleString()} RWF`;
+    return `${Number(val || 0).toLocaleString()} UGX`;
   };
 
   const openDepositModal = (memberId?: number) => {
@@ -333,44 +333,52 @@ export const SavingsPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredMembers.map((m) => {
-                const acc = m.savingsAccounts?.[0];
-                const bal = acc?.balance || 0;
-                return (
-                  <tr key={m.id} className="table-row">
-                    <td className="px-4 py-3 font-semibold text-slate-900">{m.memberNumber}</td>
-                    <td className="px-4 py-3 font-medium text-[#0B1F3A]">
-                      {m.firstName} {m.lastName}
-                    </td>
-                    <td className="px-4 py-3 text-slate-600">{m.phone || '—'}</td>
-                    <td className="px-4 py-3 text-slate-600">Voluntary</td>
-                    <td className="px-4 py-3">
-                      <Badge status={m.status} size="sm" />
-                    </td>
-                    <td className="px-4 py-3 text-right font-bold text-emerald-700">
-                      {formatCurrency(bal)}
-                    </td>
-                    {isTreasurer() && (
-                      <td className="px-4 py-3 text-right whitespace-nowrap">
-                        <div className="flex justify-end gap-1.5">
-                          <button
-                            onClick={() => openDepositModal(m.id)}
-                            className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded border border-emerald-200 font-medium"
-                          >
-                            + Deposit
-                          </button>
-                          <button
-                            onClick={() => openWithdrawModal(m.id)}
-                            className="text-xs px-2 py-1 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded border border-slate-200 font-medium"
-                          >
-                            - Withdraw
-                          </button>
-                        </div>
+              {filteredMembers.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="px-4 py-8 text-center text-xs text-slate-500">
+                    No registered members found. Add members in the Members module.
+                  </td>
+                </tr>
+              ) : (
+                filteredMembers.map((m) => {
+                  const acc = m.savingsAccounts?.[0];
+                  const bal = acc?.balance || 0;
+                  return (
+                    <tr key={m.id} className="table-row">
+                      <td className="px-4 py-3 font-semibold text-slate-900">{m.memberNumber}</td>
+                      <td className="px-4 py-3 font-medium text-[#0B1F3A]">
+                        {m.firstName} {m.lastName}
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
+                      <td className="px-4 py-3 text-slate-600">{m.phone || '—'}</td>
+                      <td className="px-4 py-3 text-slate-600">Voluntary</td>
+                      <td className="px-4 py-3">
+                        <Badge status={m.status} size="sm" />
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-emerald-700">
+                        {formatCurrency(bal)}
+                      </td>
+                      {isTreasurer() && (
+                        <td className="px-4 py-3 text-right whitespace-nowrap">
+                          <div className="flex justify-end gap-1.5">
+                            <button
+                              onClick={() => openDepositModal(m.id)}
+                              className="text-xs px-2 py-1 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded border border-emerald-200 font-medium"
+                            >
+                              + Deposit
+                            </button>
+                            <button
+                              onClick={() => openWithdrawModal(m.id)}
+                              className="text-xs px-2 py-1 bg-slate-50 text-slate-700 hover:bg-slate-100 rounded border border-slate-200 font-medium"
+                            >
+                              - Withdraw
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -420,7 +428,7 @@ export const SavingsPage: React.FC = () => {
             </Select>
 
             <Input
-              label="Transaction Amount (RWF)"
+              label="Transaction Amount (UGX)"
               type="number"
               min="100"
               step="100"

@@ -39,8 +39,8 @@ export const SettingsPage: React.FC = () => {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setPasswordError('New password must be at least 8 characters long.');
+    if (newPassword.length < 6) {
+      setPasswordError('New password must be at least 6 characters long.');
       return;
     }
 

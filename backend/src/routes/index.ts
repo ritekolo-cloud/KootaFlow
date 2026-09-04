@@ -21,11 +21,15 @@ router.get('/health', async (_req, res) => {
   let stats: Record<string, number> = {};
 
   try {
-    const [groupCount, memberCount, userCount] = await Promise.all([
+    const dbPromise = Promise.all([
       prisma.vslaGroup.count(),
       prisma.member.count(),
       prisma.user.count(),
     ]);
+    const timeoutPromise = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error('Health check DB timeout')), 4000)
+    );
+    const [groupCount, memberCount, userCount] = await Promise.race([dbPromise, timeoutPromise]);
     stats = { groups: groupCount, members: memberCount, users: userCount };
   } catch {
     dbStatus = 'unavailable';

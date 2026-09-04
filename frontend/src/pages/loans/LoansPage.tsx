@@ -115,7 +115,7 @@ export const LoansPage: React.FC = () => {
   }, [user]);
 
   const formatCurrency = (val: number | string | undefined) => {
-    return `${Number(val || 0).toLocaleString()} RWF`;
+    return `${Number(val || 0).toLocaleString()} UGX`;
   };
 
   // Interest calculation helper for loan application
@@ -496,7 +496,7 @@ export const LoansPage: React.FC = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <Input
-              label="Requested Principal (RWF)"
+              label="Requested Principal (UGX)"
               type="number"
               min="5000"
               step="1000"
@@ -578,7 +578,7 @@ export const LoansPage: React.FC = () => {
             )}
 
             <Input
-              label="Payment Amount (RWF)"
+              label="Payment Amount (UGX)"
               type="number"
               min="100"
               max={Number(actionLoan.balanceRemaining)}
