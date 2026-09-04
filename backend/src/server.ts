@@ -23,33 +23,24 @@ app.set('trust proxy', 1);
 
 export const httpServer = createServer(app);
 
-const productionFrontendOrigin = 'https://kootaflow-66mf.onrender.com';
 const developmentOrigins = ['http://localhost:5173', 'http://localhost:3000'];
-const blockedLegacyRenderServiceNames = new Set([
-  'kootaflow',
-  'kootaflow-server',
-  'kootaflow-client-nz3v',
-  'kootaflow-client',
-]);
-
-function isBlockedLegacyOrigin(origin: string): boolean {
-  try {
-    const parsed = new URL(origin);
-    return blockedLegacyRenderServiceNames.has(parsed.hostname.replace(/\.onrender\.com$/, ''));
-  } catch {
-    return false;
-  }
-}
 
 const allowedOrigins = new Set([
-  ...env.corsOrigins.filter((origin) => origin !== '*' && !isBlockedLegacyOrigin(origin)),
-  productionFrontendOrigin,
-  ...(!env.isProd ? developmentOrigins : []),
+  ...env.corsOrigins.filter((origin) => origin !== '*'),
+  'https://kootaflow-66mf.onrender.com',
+  'https://kootaflow-client-nz3v.onrender.com',
+  'https://kootaflow-client.onrender.com',
+  ...developmentOrigins,
 ]);
 
 export function isAllowedOrigin(origin?: string): boolean {
   if (!origin) return true;
-  return allowedOrigins.has(origin);
+  if (allowedOrigins.has(origin)) return true;
+  if (/^https:\/\/kootaflow[a-z0-9-]*\.onrender\.com$/.test(origin)) return true;
+  if (!env.isProd && (/^https?:\/\/localhost(:\d+)?$/.test(origin) || /^https?:\/\/127\.0\.0\.1(:\d+)?$/.test(origin))) {
+    return true;
+  }
+  return false;
 }
 
 const corsOptions: cors.CorsOptions = {

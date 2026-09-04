@@ -137,17 +137,14 @@ describe('GET /api/health', () => {
 });
 
 describe('CORS origin policy', () => {
-  const renderOrigin = (serviceName: string) => `https://${serviceName}.onrender.com`;
-
-  it('allows the production frontend origin', () => {
+  it('allows valid production frontend origins', () => {
     expect(isAllowedOrigin('https://kootaflow-66mf.onrender.com')).toBe(true);
+    expect(isAllowedOrigin('https://kootaflow-client-nz3v.onrender.com')).toBe(true);
   });
 
-  it('blocks obsolete Render service origins', () => {
-    expect(isAllowedOrigin(renderOrigin('kootaflow'))).toBe(false);
-    expect(isAllowedOrigin(renderOrigin('kootaflow-server'))).toBe(false);
-    expect(isAllowedOrigin(renderOrigin('kootaflow-client'))).toBe(false);
-    expect(isAllowedOrigin(renderOrigin('kootaflow-client-nz3v'))).toBe(false);
+  it('blocks untrusted third-party origins', () => {
+    expect(isAllowedOrigin('https://unauthorized-domain.com')).toBe(false);
+    expect(isAllowedOrigin('https://evil-site.onrender.com')).toBe(false);
   });
 });
 

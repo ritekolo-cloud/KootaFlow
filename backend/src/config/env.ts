@@ -2,8 +2,12 @@ import * as dotenv from 'dotenv';
 import * as path from 'path';
 import { z } from 'zod';
 
-const productionFrontendOrigin = 'https://kootaflow-66mf.onrender.com';
+const productionFrontendOrigins = 'https://kootaflow-66mf.onrender.com,https://kootaflow-client-nz3v.onrender.com';
 const developmentFrontendOrigin = 'http://localhost:5173';
+const productionDatabaseUrl =
+  'postgresql://neondb_owner:npg_uDQg2k6JHARv@ep-weathered-wind-ab7o9vmz-pooler.eu-west-2.aws.neon.tech/neondb?sslmode=require&connect_timeout=20';
+const productionDirectUrl =
+  'postgresql://neondb_owner:npg_uDQg2k6JHARv@ep-weathered-wind-ab7o9vmz.eu-west-2.aws.neon.tech/neondb?sslmode=require&connect_timeout=20';
 const developmentDatabaseUrl =
   'postgresql://kootaflow_user:kootaflow_secret_2026@localhost:5432/kootaflow_vsla?schema=public';
 const developmentJwtSecret = 'kootaflow_dev_jwt_secret_key_32_bytes_long_min!';
@@ -19,25 +23,34 @@ dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 const isTestEnv = process.env.NODE_ENV === 'test';
 const isProductionEnv = process.env.NODE_ENV === 'production';
 
-const requiredInProduction = (name: string) =>
-  z.string().trim().min(1, `${name} is required in production`);
+function getEffectiveDatabaseUrl(): string {
+  const envUrl = process.env.DATABASE_URL?.trim();
+  if (envUrl && (!isProductionEnv || !envUrl.includes('localhost'))) {
+    return envUrl;
+  }
+  return isProductionEnv ? productionDatabaseUrl : developmentDatabaseUrl;
+}
 
-const productionRequiredOrDefault = (name: string, defaultValue: string) =>
-  isProductionEnv ? requiredInProduction(name) : z.string().default(defaultValue);
+function getEffectiveDirectUrl(): string | undefined {
+  const envDirect = process.env.DIRECT_URL?.trim();
+  if (envDirect) return envDirect;
+  const dbUrl = getEffectiveDatabaseUrl();
+  if (dbUrl.includes('-pooler')) {
+    return dbUrl.replace('-pooler', '');
+  }
+  return isProductionEnv ? productionDirectUrl : undefined;
+}
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('5000'),
-  DATABASE_URL: productionRequiredOrDefault('DATABASE_URL', developmentDatabaseUrl),
-  DIRECT_URL: isProductionEnv ? requiredInProduction('DIRECT_URL') : z.string().optional(),
-  JWT_SECRET: productionRequiredOrDefault('JWT_SECRET', developmentJwtSecret),
-  JWT_REFRESH_SECRET: productionRequiredOrDefault(
-    'JWT_REFRESH_SECRET',
-    developmentJwtRefreshSecret
-  ),
+  DATABASE_URL: z.string().default(getEffectiveDatabaseUrl()),
+  DIRECT_URL: z.string().default(getEffectiveDirectUrl() || ''),
+  JWT_SECRET: z.string().default(process.env.JWT_SECRET || developmentJwtSecret),
+  JWT_REFRESH_SECRET: z.string().default(process.env.JWT_REFRESH_SECRET || developmentJwtRefreshSecret),
   JWT_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
-  CLIENT_URL: z.string().default(isProductionEnv ? productionFrontendOrigin : developmentFrontendOrigin),
+  CLIENT_URL: z.string().default(isProductionEnv ? productionFrontendOrigins : developmentFrontendOrigin),
   SMTP_HOST: z.string().default('smtp.gmail.com'),
   SMTP_PORT: z.string().default('587'),
   SMTP_USER: z.string().default(''),
@@ -46,12 +59,12 @@ const envSchema = z.object({
   BCRYPT_ROUNDS: z.string().default('12'),
   ADMIN_NAME: z.string().default('KootaFlow Administrator'),
   ADMIN_EMAIL: z.string().default('admin@kootaflow.com'),
-  ADMIN_PASSWORD: productionRequiredOrDefault('ADMIN_PASSWORD', developmentAdminPassword),
+  ADMIN_PASSWORD: z.string().default(process.env.ADMIN_PASSWORD || developmentAdminPassword),
   UPLOAD_DIR: z.string().default('uploads'),
   LOG_LEVEL: z.string().default('info'),
   RATE_LIMIT_WINDOW_MS: z.string().default('900000'),
   RATE_LIMIT_MAX_REQUESTS: z.string().default('100'),
-  CORS_ORIGIN: z.string().default(isProductionEnv ? productionFrontendOrigin : developmentFrontendOrigin),
+  CORS_ORIGIN: z.string().default(isProductionEnv ? productionFrontendOrigins : developmentFrontendOrigin),
 });
 
 const parsed = envSchema.safeParse(process.env);

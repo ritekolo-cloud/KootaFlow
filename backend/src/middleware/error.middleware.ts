@@ -51,9 +51,8 @@ export function errorHandler(
     res.status(400).json({
       success: false,
       message: 'Database error',
-      ...(process.env.NODE_ENV !== 'production'
-        ? { code: err.code, detail: err.message }
-        : {}),
+      code: err.code,
+      detail: err.message,
     });
     return;
   }
