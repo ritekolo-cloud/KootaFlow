@@ -16,11 +16,7 @@ const loginSchema = z.object({
 
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password is required'),
-  newPassword: z
-    .string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Must contain uppercase letter')
-    .regex(/[0-9]/, 'Must contain a number'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
 function hashToken(rawToken: string): string {
@@ -35,9 +31,10 @@ export async function login(
 ): Promise<void> {
   try {
     const { email, password } = loginSchema.parse(req.body);
+    const normalizedEmail = email.trim().toLowerCase();
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
       include: {
         memberProfile: {
           select: {
