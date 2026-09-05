@@ -63,11 +63,11 @@ async function main() {
     },
   });
 
-  // 3. Create or Update VSLA Group (Katabi Town Council)
+  // 3. Create or Update VSLA Group (Katabi Town Council VSLA)
   const group = await prisma.vslaGroup.upsert({
     where: { code: 'KATABI-01' },
     update: {
-      name: 'Katabi Town Council',
+      name: 'Katabi Town Council VSLA',
       description: 'Katabi Town Council Village Savings & Loan Association',
       meetingFrequency: MeetingFrequency.WEEKLY,
       sharePrice: 2000,
@@ -77,7 +77,7 @@ async function main() {
       welfareContribution: 500,
     },
     create: {
-      name: 'Katabi Town Council',
+      name: 'Katabi Town Council VSLA',
       code: 'KATABI-01',
       description: 'Katabi Town Council Village Savings & Loan Association',
       meetingFrequency: MeetingFrequency.WEEKLY,
